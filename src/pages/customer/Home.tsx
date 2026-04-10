@@ -112,9 +112,9 @@ const CustomerHome = () => {
                   <span className="text-xl font-bold text-[#8B4513]">${item.price.toFixed(2)}</span>
                   <button 
                     onClick={() => handleCustomize(item)}
-                    className="bg-[#FCF9F2] text-[#8B4513] border border-[#DAA520] px-6 py-2 rounded-xl font-bold hover:bg-[#DAA520] hover:text-white transition-colors"
+                    className="bg-[#DAA520] text-white px-6 py-2 rounded-xl font-bold hover:bg-[#8B4513] transition-colors shadow-md flex items-center gap-2"
                   >
-                    Customize
+                    Buy
                   </button>
                 </div>
               </div>
