@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Trash2, CreditCard, MapPin, ShoppingCart } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../features/store';
-import { removeFromCart, updateQuantity, clearCart } from '../features/cartSlice';
+import { removeFromCart, updateQuantity } from '../features/cartSlice';
+import PaymentModal from './PaymentModal';
 
 interface CartSidebarProps {
   isOpen: boolean;
@@ -12,19 +13,16 @@ interface CartSidebarProps {
 const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { items, totalAmount, orderType, address } = useSelector((state: RootState) => state.cart);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   if (!isOpen) return null;
 
   const handleCheckout = () => {
     if (items.length === 0) return;
-    alert('Proceeding to secure payment gateway (Stripe/Razorpay simulation)...');
-    // In a real app, this would redirect to a checkout page or open a Stripe modal
-    setTimeout(() => {
-      alert('Payment Successful! Your order is being prepared.');
-      dispatch(clearCart());
-      onClose();
-    }, 1500);
+    setIsPaymentModalOpen(true);
   };
+
+  const finalTotal = totalAmount * 1.08; // Including 8% tax
 
   return (
     <>
@@ -118,7 +116,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
               </div>
               <div className="flex justify-between text-lg font-bold text-[#4A2C2A] pt-3 border-t border-gray-100">
                 <span>Total</span>
-                <span>${(totalAmount * 1.08).toFixed(2)}</span>
+                <span>${finalTotal.toFixed(2)}</span>
               </div>
             </div>
             
@@ -127,14 +125,24 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
               className="w-full bg-[#8B4513] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#DAA520] transition-colors shadow-md flex justify-center items-center gap-2"
             >
               <CreditCard size={20} />
-              Checkout
+              Proceed to Payment
             </button>
           </div>
         )}
       </div>
+
+      <PaymentModal 
+        isOpen={isPaymentModalOpen} 
+        onClose={() => {
+          setIsPaymentModalOpen(false);
+          onClose(); // Close cart as well after successful payment
+        }} 
+        totalAmount={finalTotal} 
+      />
     </>
   );
 };
 
 export default CartSidebar;
+
 
