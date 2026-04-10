@@ -6,9 +6,9 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from './firebase';
 import { setUser } from './features/authSlice';
 import { doc, getDoc } from 'firebase/firestore';
+import CustomerHome from './pages/customer/Home';
 
-// Placeholder Components
-const CustomerLayout = () => <div className="p-4">Customer App (Menu, Cart)</div>;
+// Placeholder Components for other roles
 const AdminLayout = () => <div className="p-4">Admin Dashboard</div>;
 const DeliveryLayout = () => <div className="p-4">Delivery Partner App</div>;
 const Login = () => <div className="p-4">Login Page</div>;
@@ -49,7 +49,7 @@ const AppContent = () => {
   }, [dispatch]);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-[#FCF9F2] text-[#8B4513] font-serif text-2xl">Loading Sanskriti's Pizza...</div>;
   }
 
   return (
@@ -62,7 +62,7 @@ const AppContent = () => {
         <Route path="/delivery/*" element={user?.role === 'delivery' ? <DeliveryLayout /> : <Navigate to="/login" />} />
         
         {/* Default to customer app */}
-        <Route path="/*" element={<CustomerLayout />} />
+        <Route path="/*" element={<CustomerHome />} />
       </Routes>
     </Router>
   );
@@ -75,4 +75,5 @@ export default function App() {
     </Provider>
   );
 }
+
 
