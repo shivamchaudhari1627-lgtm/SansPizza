@@ -139,7 +139,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
               {isProcessing ? (
                 <span className="animate-pulse">Processing Payment...</span>
               ) : (
-                `Pay ₹{totalAmount.toFixed(2)}`
+                `Pay ₹${totalAmount.toFixed(2)}`
               )}
             </button>
           </div>

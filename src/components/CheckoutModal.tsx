@@ -108,7 +108,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, cartTota
                 {isProcessing ? (
                   <span className="animate-pulse">Processing...</span>
                 ) : (
-                  `Pay ₹{cartTotal.toFixed(2)}`
+                  `Pay ₹${cartTotal.toFixed(2)}`
                 )}
               </button>
             </div>
