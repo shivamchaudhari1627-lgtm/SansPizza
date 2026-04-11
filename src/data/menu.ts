@@ -34,7 +34,7 @@ export const menuItems: MenuItem[] = [
 
   // --- Drinks ---
   { id: 'd1', name: 'Coca-Cola', description: 'Chilled 500ml bottle.', price: 45, image: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=500&q=80', category: 'Drinks', type: 'veg' },
-  { id: 'd2', name: 'Pepsi', description: 'Chilled 500ml bottle.', price: 45, image: 'https://www.pepsi.com/prod/s3fs-public/2024-01/product_image_pepsi_zero_0.png', category: 'Drinks', type: 'veg' },
+  { id: 'd2', name: 'Pepsi', description: 'Chilled 500ml bottle.', price: 45, image: 'https://www.pepsi.com/prod/s3fs-public/2026-01/product_image_pepsi_zero_0.png', category: 'Drinks', type: 'veg' },
   { id: 'd3', name: 'Sprite', description: 'Chilled 500ml bottle.', price: 45, image: 'https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?auto=format&fit=crop&w=500&q=80', category: 'Drinks', type: 'veg' },
   { id: 'd4', name: 'Fanta', description: 'Chilled 500ml bottle.', price: 45, image: 'https://images.unsplash.com/photo-1624517452488-04869289c4ca?auto=format&fit=crop&w=500&q=80', category: 'Drinks', type: 'veg' },
   { id: 'd5', name: 'Orange Juice', description: 'Freshly squeezed orange juice.', price: 99, image: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&w=500&q=80', category: 'Drinks', type: 'veg' },
