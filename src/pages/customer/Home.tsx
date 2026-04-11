@@ -9,6 +9,7 @@ import { RootState } from '../../features/store';
 
 const CustomerHome = () => {
   const [activeCategory, setActiveCategory] = useState(menuCategories[0]);
+  const [vegOnly, setVegOnly] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -27,7 +28,9 @@ const CustomerHome = () => {
     setIsCustomizeModalOpen(true);
   };
 
-  const filteredMenu = menuItems.filter(item => item.category === activeCategory);
+  const filteredMenu = menuItems.filter(item => 
+    item.category === activeCategory && (!vegOnly || item.type === 'veg')
+  );
 
   return (
     <div className="min-h-screen bg-[#FCF9F2] font-sans text-[#4A2C2A] pb-24">
@@ -64,8 +67,8 @@ const CustomerHome = () => {
 
       {/* Category Tabs (Domino's Style) */}
       <div className="bg-white shadow-sm sticky top-20 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex overflow-x-auto hide-scrollbar py-4 gap-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+          <div className="flex overflow-x-auto hide-scrollbar py-4 gap-8 flex-grow">
             {menuCategories.map(category => (
               <button
                 key={category}
@@ -79,6 +82,30 @@ const CustomerHome = () => {
                 {category}
               </button>
             ))}
+          </div>
+
+          {/* Veg Only Toggle */}
+          <div className="flex items-center gap-3 ml-4 py-4 border-l pl-6 border-gray-100">
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Filter</span>
+              <span className={`text-xs font-bold whitespace-nowrap transition-colors ${vegOnly ? 'text-green-600' : 'text-gray-500'}`}>
+                VEG ONLY
+              </span>
+            </div>
+            <button 
+              onClick={() => setVegOnly(!vegOnly)}
+              className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner ${
+                vegOnly ? 'bg-green-500' : 'bg-gray-200'
+              }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 shadow-md ${
+                  vegOnly ? 'translate-x-6' : 'translate-x-1'
+                } flex items-center justify-center`}
+              >
+                <div className={`w-2 h-2 rounded-full ${vegOnly ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+              </span>
+            </button>
           </div>
         </div>
       </div>
