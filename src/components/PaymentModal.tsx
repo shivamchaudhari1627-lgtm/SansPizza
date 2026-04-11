@@ -19,6 +19,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
   if (!isOpen) return null;
 
   const handlePayment = () => {
+    if (paymentMethod === 'qr' || paymentMethod === 'upi') {
+      const upiUrl = `upi://pay?pa=8963938656@ibl&pn=SANSKRITI%20DIXIT&mc=0000&mode=02&purpose=00&am=${totalAmount.toFixed(2)}&cu=INR`;
+      window.location.href = upiUrl;
+    }
+
     setIsProcessing(true);
     // Simulate payment processing
     setTimeout(() => {
@@ -179,9 +184,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
                   <span>Processing...</span>
                 </div>
               ) : (
-                paymentMethod === 'cod' ? 'Confirm Order' : `Pay ₹${totalAmount.toFixed(2)}`
+                paymentMethod === 'cod' ? 'Confirm Order' : 
+                (paymentMethod === 'qr' || paymentMethod === 'upi') ? 'Pay via UPI App' : `Pay ₹${totalAmount.toFixed(2)}`
               )}
             </button>
+            {(paymentMethod === 'qr' || paymentMethod === 'upi') && (
+              <p className="text-[10px] text-center text-gray-400 mt-3">
+                Clicking pay will redirect you to your preferred UPI app (PhonePe, GPay, etc.)
+              </p>
+            )}
           </div>
         );
 
