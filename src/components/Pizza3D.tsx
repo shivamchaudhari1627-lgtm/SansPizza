@@ -84,12 +84,13 @@ const Topping = ({ type, position, rotation }: { type: 'pepperoni' | 'olive' | '
   if (type === 'pepperoni') {
     return (
       <mesh position={position} rotation={rotation} castShadow>
-        <cylinderGeometry args={[0.2, 0.2, 0.02, 16]} />
+        <cylinderGeometry args={[0.22, 0.22, 0.03, 24]} />
         <meshPhysicalMaterial 
-          color="#8B0000" 
-          roughness={0.4} 
-          clearcoat={0.3} 
-          bumpScale={0.01}
+          color="#9e1b1b" 
+          roughness={0.3} 
+          clearcoat={0.4} 
+          clearcoatRoughness={0.2}
+          bumpScale={0.02}
         />
       </mesh>
     );
@@ -97,15 +98,15 @@ const Topping = ({ type, position, rotation }: { type: 'pepperoni' | 'olive' | '
   if (type === 'olive') {
     return (
       <mesh position={position} rotation={rotation} castShadow>
-        <torusGeometry args={[0.08, 0.04, 8, 16]} />
-        <meshPhysicalMaterial color="#1a1a1a" roughness={0.1} metalness={0.2} />
+        <torusGeometry args={[0.07, 0.035, 12, 24]} />
+        <meshPhysicalMaterial color="#0a0a0a" roughness={0.2} metalness={0.1} />
       </mesh>
     );
   }
   return (
     <mesh position={position} rotation={rotation} castShadow>
-      <boxGeometry args={[0.15, 0.02, 0.05]} />
-      <meshPhysicalMaterial color="#228B22" roughness={0.3} clearcoat={0.5} />
+      <boxGeometry args={[0.12, 0.03, 0.04]} />
+      <meshPhysicalMaterial color="#1b5e20" roughness={0.4} clearcoat={0.3} />
     </mesh>
   );
 };
@@ -127,26 +128,28 @@ const PizzaSlice = ({
 
   const toppingsData = useMemo(() => {
     const types: ('pepperoni' | 'olive' | 'pepper')[] = ['pepperoni', 'olive', 'pepper'];
-    return [...Array(4)].map(() => {
-      const r = 0.6 + Math.random() * 1.1;
+    return [...Array(5)].map(() => {
+      const r = 0.5 + Math.random() * 1.2;
       const a = (Math.random() * 0.8 + 0.1) * angleStep;
       return { 
         type: types[Math.floor(Math.random() * types.length)],
         r, 
         a, 
-        rotation: [Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI] as [number, number, number]
+        rotation: [Math.random() * 0.2 - 0.1, Math.random() * Math.PI, Math.random() * 0.1] as [number, number, number]
       };
     });
   }, [angleStep]);
 
   useFrame(() => {
     if (!groupRef.current) return;
-    const targetY = isPulled ? 0.6 : 0;
-    const targetZ = isPulled ? 0.5 : 0;
-    const targetRotX = isPulled ? -0.1 : 0;
-    groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, 0.1);
-    groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetZ, 0.1);
-    groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetRotX, 0.1);
+    const targetY = isPulled ? 0.7 : 0;
+    const targetZ = isPulled ? 0.6 : 0;
+    const targetRotX = isPulled ? -0.15 : 0;
+    const targetRotZ = isPulled ? 0.05 : 0;
+    groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, 0.08);
+    groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetZ, 0.08);
+    groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetRotX, 0.08);
+    groupRef.current.rotation.z = THREE.MathUtils.lerp(groupRef.current.rotation.z, targetRotZ, 0.08);
   });
 
   return (
@@ -158,49 +161,54 @@ const PizzaSlice = ({
         onToggle();
       }}
     >
-      {/* Crust Geometry - More detailed PBR */}
+      {/* Main Crust - Irregular look */}
       <mesh castShadow receiveShadow>
-        <cylinderGeometry args={[2, 2, 0.3, 32, 1, false, 0, angleStep]} />
+        <cylinderGeometry args={[2, 2.05, 0.35, 32, 1, false, 0, angleStep]} />
         <meshPhysicalMaterial
-          color="#D2691E"
-          roughness={0.8}
-          metalness={0.1}
-          clearcoat={0.1}
-          reflectivity={0.2}
-        />
-      </mesh>
-
-      {/* Outer Crust Edge (The puffy part) */}
-      <mesh position={[0, 0.1, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <torusGeometry args={[1.9, 0.15, 12, 32, angleStep]} />
-        <meshPhysicalMaterial color="#8B4513" roughness={0.9} />
-      </mesh>
-
-      {/* Sauce Layer */}
-      <mesh position={[0, 0.12, 0]} receiveShadow>
-        <cylinderGeometry args={[1.8, 1.8, 0.02, 32, 1, false, 0, angleStep]} />
-        <meshPhysicalMaterial color="#A52A2A" roughness={0.2} clearcoat={1} />
-      </mesh>
-
-      {/* Cheese Layer - Bubbling effect with MeshDistortMaterial */}
-      <mesh position={[0, 0.15, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[1.75, 1.75, 0.08, 32, 1, false, 0, angleStep]} />
-        <meshPhysicalMaterial
-          color="#FFD700"
-          roughness={0.3}
+          color="#e6a756"
+          roughness={0.9}
           metalness={0}
-          emissive="#FFA500"
-          emissiveIntensity={0.15}
-          clearcoat={0.6}
+          reflectivity={0.1}
         />
       </mesh>
 
-      {/* Toppings */}
+      {/* Puffy Outer Crust - Matches the "sculpted" look in the image */}
+      <mesh position={[0, 0.12, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <torusGeometry args={[1.92, 0.18, 16, 40, angleStep]} />
+        <meshPhysicalMaterial 
+          color="#d48c31" 
+          roughness={0.85}
+          emissive="#4a2c0a"
+          emissiveIntensity={0.1}
+        />
+      </mesh>
+
+      {/* Sauce Layer - Deep rich red */}
+      <mesh position={[0, 0.14, 0]} receiveShadow>
+        <cylinderGeometry args={[1.82, 1.82, 0.03, 32, 1, false, 0, angleStep]} />
+        <meshPhysicalMaterial color="#8b0000" roughness={0.3} clearcoat={0.8} />
+      </mesh>
+
+      {/* Bubbly Cheese Layer - Using MeshDistortMaterial for organic surface */}
+      <mesh position={[0, 0.18, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[1.78, 1.78, 0.1, 32, 1, false, 0, angleStep]} />
+        <MeshDistortMaterial
+          color="#ffd54f"
+          speed={0} // Static distortion
+          distort={0.15}
+          roughness={0.4}
+          metalness={0}
+          emissive="#ff8f00"
+          emissiveIntensity={0.1}
+        />
+      </mesh>
+
+      {/* Toppings - Integrated into the cheese */}
       {toppingsData.map((t, i) => (
         <Topping
           key={i}
           type={t.type}
-          position={[Math.cos(t.a) * t.r, 0.22, Math.sin(t.a) * t.r]}
+          position={[Math.cos(t.a) * t.r, 0.24, Math.sin(t.a) * t.r]}
           rotation={t.rotation}
         />
       ))}
@@ -211,6 +219,20 @@ const PizzaSlice = ({
   );
 };
 
+const PizzaBoard = () => {
+  return (
+    <mesh position={[0, -0.2, 0]} receiveShadow>
+      <cylinderGeometry args={[2.5, 2.5, 0.15, 64]} />
+      <meshPhysicalMaterial 
+        color="#3d2b1f" 
+        roughness={0.6} 
+        metalness={0.1}
+        clearcoat={0.2}
+      />
+    </mesh>
+  );
+};
+
 const PizzaModel = () => {
   const [pulledSlice, setPulledSlice] = useState<number | null>(null);
   const totalSlices = 8;
@@ -218,13 +240,14 @@ const PizzaModel = () => {
 
   useFrame((state) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y += 0.003;
+      groupRef.current.rotation.y += 0.002;
     }
   });
 
   return (
     <group ref={groupRef}>
       <Steam />
+      <PizzaBoard />
       {[...Array(totalSlices)].map((_, i) => (
         <PizzaSlice
           key={i}
@@ -235,10 +258,10 @@ const PizzaModel = () => {
         />
       ))}
 
-      {/* Center piece */}
-      <mesh position={[0, 0.05, 0]}>
-        <cylinderGeometry args={[0.1, 0.1, 0.3, 16]} />
-        <meshPhysicalMaterial color="#8B4513" roughness={0.8} />
+      {/* Center piece - The "hub" of the pizza */}
+      <mesh position={[0, 0.08, 0]}>
+        <cylinderGeometry args={[0.08, 0.08, 0.3, 16]} />
+        <meshPhysicalMaterial color="#8b4513" roughness={0.8} />
       </mesh>
     </group>
   );
@@ -310,7 +333,6 @@ const Pizza3D = () => {
         />
 
         <Environment preset="city" />
-        <Stars radius={100} depth={50} count={1000} factor={4} saturation={0} fade speed={1} />
       </Canvas>
     </div>
   );

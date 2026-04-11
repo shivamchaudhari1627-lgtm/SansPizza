@@ -39,6 +39,13 @@ const CustomerHome = () => {
     item.category === activeCategory && (!vegOnly || item.type === 'veg')
   );
 
+  const handleOrderNow = () => {
+    const menuElement = document.getElementById('menu-section');
+    if (menuElement) {
+      menuElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FCF9F2] font-sans text-[#4A2C2A] pb-24">
       <Header 
@@ -47,10 +54,11 @@ const CustomerHome = () => {
       />
 
       {/* Hero Banner */}
-      <div className="bg-[#F4EBD0] relative overflow-hidden min-h-[600px] flex items-center">
+      <div className="bg-gradient-to-br from-[#F4EBD0] via-[#FFF5E1] to-[#FFE4B5] relative overflow-hidden min-h-[600px] flex items-center">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
         <motion.div 
           style={{ y: y1 }}
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0 opacity-10 bg-[#DAA520]/10"
         ></motion.div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 relative z-10 flex flex-col md:flex-row items-center w-full">
@@ -90,9 +98,10 @@ const CustomerHome = () => {
               Experience the perfect blend of Vedic wisdom and modern pizza crafting. Try our new Ashwagandha-infused crust!
             </motion.p>
             <motion.button 
-              whileHover={{ scale: 1.05, backgroundColor: "#8B4513" }}
+              whileHover={{ scale: 1.05, backgroundColor: "#8B4513", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
               whileTap={{ scale: 0.95 }}
-              className="bg-[#DAA520] text-white px-10 py-4 rounded-full font-bold text-xl hover:bg-[#8B4513] transition-colors shadow-xl"
+              onClick={handleOrderNow}
+              className="bg-[#DAA520] text-white px-10 py-4 rounded-full font-bold text-xl hover:bg-[#8B4513] transition-all shadow-xl border-b-4 border-[#B8860B] active:border-b-0"
             >
               Order Now
             </motion.button>
@@ -120,7 +129,7 @@ const CustomerHome = () => {
       </div>
 
       {/* Category Tabs (Domino's Style) */}
-      <div className="bg-white shadow-sm sticky top-20 z-30">
+      <div id="menu-section" className="bg-white shadow-sm sticky top-20 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <div className="flex overflow-x-auto hide-scrollbar py-4 gap-8 flex-grow">
             {menuCategories.map(category => (
