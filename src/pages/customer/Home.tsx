@@ -54,11 +54,11 @@ const CustomerHome = () => {
       />
 
       {/* Hero Banner */}
-      <div className="bg-gradient-to-br from-[#F4EBD0] via-[#FFF5E1] to-[#FFE4B5] relative overflow-hidden min-h-[600px] flex items-center">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+      <div className="bg-gradient-to-br from-[#7f1d1d] via-[#991b1b] to-[#b91c1c] relative overflow-hidden min-h-[600px] flex items-center">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
         <motion.div 
           style={{ y: y1 }}
-          className="absolute inset-0 opacity-10 bg-[#DAA520]/10"
+          className="absolute inset-0 opacity-20 bg-black/20"
         ></motion.div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 relative z-10 flex flex-col md:flex-row items-center w-full">
@@ -70,7 +70,7 @@ const CustomerHome = () => {
             className="md:w-1/2 text-center md:text-left mb-8 md:mb-0"
           >
             <motion.h2 
-              className="text-5xl md:text-7xl font-serif font-bold text-[#8B4513] leading-tight mb-6"
+              className="text-5xl md:text-7xl font-serif font-bold text-white leading-tight mb-6"
             >
               <motion.span
                 initial={{ opacity: 0, y: 20 }}
@@ -93,7 +93,7 @@ const CustomerHome = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="text-xl text-gray-700 mb-8 max-w-md"
+              className="text-xl text-red-50 mb-8 max-w-md"
             >
               Experience the perfect blend of Vedic wisdom and modern pizza crafting. Try our new Ashwagandha-infused crust!
             </motion.p>

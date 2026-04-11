@@ -78,7 +78,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenLocation }) => {
                 {user.photoURL ? (
                   <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border-2 border-[#DAA520]/20 shadow-sm" />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-[#F4EBD0] flex items-center justify-center text-[#8B4513] font-bold text-xs border-2 border-[#DAA520]/20">
+                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-[#8B4513] font-bold text-xs border-2 border-[#DAA520]/20">
                     {user.displayName?.charAt(0)}
                   </div>
                 )}
@@ -92,7 +92,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenLocation }) => {
             
             <button 
               onClick={onOpenCart}
-              className="flex items-center gap-3 bg-[#FCF9F2] border-2 border-[#DAA520] px-4 py-2 rounded-xl hover:bg-[#F4EBD0] transition-colors group"
+              className="flex items-center gap-3 bg-[#FCF9F2] border-2 border-[#DAA520] px-4 py-2 rounded-xl hover:bg-red-50 transition-colors group"
             >
               <div className="relative">
                 <ShoppingCart size={24} className="text-[#8B4513]" />

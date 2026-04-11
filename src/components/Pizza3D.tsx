@@ -86,11 +86,12 @@ const Topping = ({ type, position, rotation }: { type: 'pepperoni' | 'olive' | '
       <mesh position={position} rotation={rotation} castShadow>
         <cylinderGeometry args={[0.22, 0.22, 0.03, 24]} />
         <meshPhysicalMaterial 
-          color="#9e1b1b" 
-          roughness={0.3} 
-          clearcoat={0.4} 
-          clearcoatRoughness={0.2}
-          bumpScale={0.02}
+          color="#e74c3c" 
+          roughness={0.2} 
+          clearcoat={0.6} 
+          clearcoatRoughness={0.1}
+          emissive="#c0392b"
+          emissiveIntensity={0.1}
         />
       </mesh>
     );
@@ -165,10 +166,10 @@ const PizzaSlice = ({
       <mesh castShadow receiveShadow>
         <cylinderGeometry args={[2, 2.05, 0.35, 32, 1, false, 0, angleStep]} />
         <meshPhysicalMaterial
-          color="#e6a756"
-          roughness={0.9}
-          metalness={0}
-          reflectivity={0.1}
+          color="#ffb347"
+          roughness={0.8}
+          metalness={0.1}
+          reflectivity={0.3}
         />
       </mesh>
 
@@ -176,30 +177,30 @@ const PizzaSlice = ({
       <mesh position={[0, 0.12, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
         <torusGeometry args={[1.92, 0.18, 16, 40, angleStep]} />
         <meshPhysicalMaterial 
-          color="#d48c31" 
-          roughness={0.85}
-          emissive="#4a2c0a"
-          emissiveIntensity={0.1}
+          color="#e67e22" 
+          roughness={0.7}
+          emissive="#d35400"
+          emissiveIntensity={0.2}
         />
       </mesh>
 
       {/* Sauce Layer - Deep rich red */}
       <mesh position={[0, 0.14, 0]} receiveShadow>
         <cylinderGeometry args={[1.82, 1.82, 0.03, 32, 1, false, 0, angleStep]} />
-        <meshPhysicalMaterial color="#8b0000" roughness={0.3} clearcoat={0.8} />
+        <meshPhysicalMaterial color="#c0392b" roughness={0.2} clearcoat={1} />
       </mesh>
 
       {/* Bubbly Cheese Layer - Using MeshDistortMaterial for organic surface */}
       <mesh position={[0, 0.18, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[1.78, 1.78, 0.1, 32, 1, false, 0, angleStep]} />
         <MeshDistortMaterial
-          color="#ffd54f"
+          color="#f1c40f"
           speed={0} // Static distortion
           distort={0.15}
-          roughness={0.4}
-          metalness={0}
-          emissive="#ff8f00"
-          emissiveIntensity={0.1}
+          roughness={0.3}
+          metalness={0.1}
+          emissive="#f39c12"
+          emissiveIntensity={0.3}
         />
       </mesh>
 
@@ -290,6 +291,7 @@ const Pizza3D = () => {
         gl={{ 
           antialias: true, 
           toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.2
         }}
       >
         <color attach="background" args={['#0a0500']} />
