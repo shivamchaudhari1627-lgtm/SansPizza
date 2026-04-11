@@ -1,11 +1,11 @@
 import React, { useRef, useState, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, PresentationControls, ContactShadows, PerspectiveCamera, Stars, Environment, MeshDistortMaterial } from '@react-three/drei';
+import { Float, PresentationControls, ContactShadows, PerspectiveCamera, Stars, Environment, Html } from '@react-three/drei';
 import * as THREE from 'three';
 
 const Steam = () => {
   const points = useRef<THREE.Points>(null);
-  const count = 60;
+  const count = 30; // Reduced for mobile performance
 
   const positions = useMemo(() => {
     const pos = new Float32Array(count * 3);
@@ -84,12 +84,10 @@ const Topping = ({ type, position, rotation }: { type: 'pepperoni' | 'olive' | '
   if (type === 'pepperoni') {
     return (
       <mesh position={position} rotation={rotation} castShadow>
-        <cylinderGeometry args={[0.22, 0.22, 0.03, 24]} />
-        <meshPhysicalMaterial 
+        <cylinderGeometry args={[0.22, 0.22, 0.03, 16]} />
+        <meshStandardMaterial 
           color="#e74c3c" 
-          roughness={0.2} 
-          clearcoat={0.6} 
-          clearcoatRoughness={0.1}
+          roughness={0.3} 
           emissive="#c0392b"
           emissiveIntensity={0.1}
         />
@@ -99,15 +97,15 @@ const Topping = ({ type, position, rotation }: { type: 'pepperoni' | 'olive' | '
   if (type === 'olive') {
     return (
       <mesh position={position} rotation={rotation} castShadow>
-        <torusGeometry args={[0.07, 0.035, 12, 24]} />
-        <meshPhysicalMaterial color="#0a0a0a" roughness={0.2} metalness={0.1} />
+        <torusGeometry args={[0.07, 0.035, 8, 16]} />
+        <meshStandardMaterial color="#0a0a0a" roughness={0.3} />
       </mesh>
     );
   }
   return (
     <mesh position={position} rotation={rotation} castShadow>
       <boxGeometry args={[0.12, 0.03, 0.04]} />
-      <meshPhysicalMaterial color="#1b5e20" roughness={0.4} clearcoat={0.3} />
+      <meshStandardMaterial color="#1b5e20" roughness={0.5} />
     </mesh>
   );
 };
@@ -190,17 +188,15 @@ const PizzaSlice = ({
         <meshPhysicalMaterial color="#c0392b" roughness={0.2} clearcoat={1} />
       </mesh>
 
-      {/* Bubbly Cheese Layer - Using MeshDistortMaterial for organic surface */}
+      {/* Bubbly Cheese Layer - Simplified for mobile compatibility */}
       <mesh position={[0, 0.18, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[1.78, 1.78, 0.1, 32, 1, false, 0, angleStep]} />
-        <MeshDistortMaterial
+        <meshStandardMaterial
           color="#f1c40f"
-          speed={0} // Static distortion
-          distort={0.15}
-          roughness={0.3}
-          metalness={0.1}
+          roughness={0.4}
+          metalness={0}
           emissive="#f39c12"
-          emissiveIntensity={0.3}
+          emissiveIntensity={0.2}
         />
       </mesh>
 
@@ -286,55 +282,66 @@ const Pizza3D = () => {
 
       <Canvas 
         shadows
+        dpr={[1, 2]} // Cap DPR for mobile performance
         camera={{ position: [0, 8, 12], fov: 30 }}
         style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
         gl={{ 
           antialias: true, 
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.2
+          toneMappingExposure: 1.2,
+          powerPreference: "high-performance"
         }}
       >
-        <color attach="background" args={['#0a0500']} />
+        <React.Suspense fallback={
+          <Html center>
+            <div className="flex flex-col items-center justify-center w-64 bg-[#0a0500]/90 p-6 rounded-2xl backdrop-blur-md border border-[#DAA520]/30 shadow-2xl">
+              <div className="w-12 h-12 border-4 border-[#DAA520] border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-[#DAA520] font-bold animate-pulse text-center">Baking 3D Experience...</p>
+            </div>
+          </Html>
+        }>
+          <color attach="background" args={['#0a0500']} />
 
-        {/* Realistic Lighting */}
-        <ambientLight intensity={0.5} />
-        <spotLight
-          position={[15, 20, 15]}
-          angle={0.25}
-          penumbra={1}
-          intensity={1500}
-          castShadow
-          color="#ffcc88"
-          shadow-mapSize={[2048, 2048]}
-        />
-        <directionalLight position={[-10, 10, 5]} intensity={1.5} color="#ffffff" />
-        <pointLight position={[-5, 5, -5]} intensity={300} color="#ff4400" />
-        <pointLight position={[0, 4, 0]} intensity={100} color="#ffffff" />
+          {/* Realistic Lighting */}
+          <ambientLight intensity={0.5} />
+          <spotLight
+            position={[15, 20, 15]}
+            angle={0.25}
+            penumbra={1}
+            intensity={1500}
+            castShadow
+            color="#ffcc88"
+            shadow-mapSize={[512, 512]} // Reduced for mobile
+          />
+          <directionalLight position={[-10, 10, 5]} intensity={1.5} color="#ffffff" />
+          <pointLight position={[-5, 5, -5]} intensity={300} color="#ff4400" />
+          <pointLight position={[0, 4, 0]} intensity={100} color="#ffffff" />
 
-        <PresentationControls
-          global={false}
-          snap
-          speed={1.2}
-          zoom={1}
-          rotation={[0, 0, 0]}
-          polar={[-Math.PI / 4, Math.PI / 4]}
-          azimuth={[-Math.PI / 2, Math.PI / 2]}
-        >
-          <Float speed={1.2} rotationIntensity={0.1} floatIntensity={0.3}>
-            <PizzaModel />
-          </Float>
-        </PresentationControls>
+          <PresentationControls
+            global={false}
+            snap
+            speed={1.2}
+            zoom={1}
+            rotation={[0, 0, 0]}
+            polar={[-Math.PI / 4, Math.PI / 4]}
+            azimuth={[-Math.PI / 2, Math.PI / 2]}
+          >
+            <Float speed={1.2} rotationIntensity={0.1} floatIntensity={0.3}>
+              <PizzaModel />
+            </Float>
+          </PresentationControls>
 
-        <ContactShadows
-          position={[0, -0.1, 0]}
-          opacity={0.8}
-          scale={15}
-          blur={2.5}
-          far={4}
-          color="#000000"
-        />
+          <ContactShadows
+            position={[0, -0.1, 0]}
+            opacity={0.8}
+            scale={15}
+            blur={2.5}
+            far={4}
+            color="#000000"
+          />
 
-        <Environment preset="city" />
+          <Environment preset="city" />
+        </React.Suspense>
       </Canvas>
     </div>
   );
