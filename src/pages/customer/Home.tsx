@@ -109,7 +109,7 @@ const CustomerHome = () => {
                 <p className="text-sm text-gray-600 mb-6 flex-grow">{item.description}</p>
                 
                 <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
-                  <span className="text-xl font-bold text-[#8B4513]">${item.price.toFixed(2)}</span>
+                  <span className="text-xl font-bold text-[#8B4513]">₹{item.price.toFixed(2)}</span>
                   <button 
                     onClick={() => handleCustomize(item)}
                     className="bg-[#DAA520] text-white px-6 py-2 rounded-xl font-bold hover:bg-[#8B4513] transition-colors shadow-md flex items-center gap-2"

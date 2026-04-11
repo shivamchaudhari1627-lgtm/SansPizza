@@ -34,7 +34,7 @@ export const menuItems: MenuItem[] = [
 
   // --- Drinks ---
   { id: 'd1', name: 'Coca-Cola', description: 'Chilled 500ml bottle.', price: 1.99, image: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=500&q=80', category: 'Drinks', type: 'veg' },
-  { id: 'd2', name: 'Pepsi', description: 'Chilled 500ml bottle.', price: 1.99, image: 'https://images.unsplash.com/photo-1629744439178-01768801fce1?auto=format&fit=crop&w=500&q=80', category: 'Drinks', type: 'veg' },
+  { id: 'd2', name: 'Pepsi', description: 'Chilled 500ml bottle.', price: 1.99, image: 'https://images.unsplash.com/photo-1533007417778-5989276a0380?auto=format&fit=crop&w=500&q=80', category: 'Drinks', type: 'veg' },
   { id: 'd3', name: 'Sprite', description: 'Chilled 500ml bottle.', price: 1.99, image: 'https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?auto=format&fit=crop&w=500&q=80', category: 'Drinks', type: 'veg' },
   { id: 'd4', name: 'Fanta', description: 'Chilled 500ml bottle.', price: 1.99, image: 'https://images.unsplash.com/photo-1624517452488-04869289c4ca?auto=format&fit=crop&w=500&q=80', category: 'Drinks', type: 'veg' },
   { id: 'd5', name: 'Orange Juice', description: 'Freshly squeezed orange juice.', price: 3.99, image: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&w=500&q=80', category: 'Drinks', type: 'veg' },
@@ -44,16 +44,16 @@ export const menuItems: MenuItem[] = [
   { id: 'd9', name: 'Cold Coffee', description: 'Creamy blended cold coffee.', price: 4.99, image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=500&q=80', category: 'Drinks', type: 'veg' },
   { id: 'd10', name: 'Chocolate Shake', description: 'Thick chocolate milkshake.', price: 5.99, image: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=500&q=80', category: 'Drinks', type: 'veg' },
   { id: 'd11', name: 'Strawberry Shake', description: 'Fresh strawberry milkshake.', price: 5.99, image: 'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&w=500&q=80', category: 'Drinks', type: 'veg' },
-  { id: 'd12', name: 'Oreo Shake', description: 'Crunchy Oreo blended milkshake.', price: 6.49, image: 'https://images.unsplash.com/photo-1553177595-4de2bb0842b9?auto=format&fit=crop&w=500&q=80', category: 'Drinks', type: 'veg' },
+  { id: 'd12', name: 'Oreo Shake', description: 'Crunchy Oreo blended milkshake.', price: 6.49, image: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=500&q=80', category: 'Drinks', type: 'veg' },
 
   // --- Ice Creams ---
-  { id: 'ic1', name: 'Vanilla Ice Cream', description: 'Classic vanilla bean scoop.', price: 2.99, image: 'https://images.unsplash.com/photo-1570197781417-0a52375c020d?auto=format&fit=crop&w=500&q=80', category: 'Ice Creams', type: 'veg' },
+  { id: 'ic1', name: 'Vanilla Ice Cream', description: 'Classic vanilla bean scoop.', price: 2.99, image: 'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?auto=format&fit=crop&w=500&q=80', category: 'Ice Creams', type: 'veg' },
   { id: 'ic2', name: 'Chocolate Ice Cream', description: 'Rich dark chocolate scoop.', price: 3.49, image: 'https://images.unsplash.com/photo-1563805042-7684c8a9e9ce?auto=format&fit=crop&w=500&q=80', category: 'Ice Creams', type: 'veg' },
   { id: 'ic3', name: 'Strawberry Ice Cream', description: 'Made with real strawberries.', price: 3.49, image: 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?auto=format&fit=crop&w=500&q=80', category: 'Ice Creams', type: 'veg' },
-  { id: 'ic4', name: 'Butterscotch Ice Cream', description: 'Caramelized nuts in creamy butterscotch.', price: 3.99, image: 'https://images.unsplash.com/photo-1558500468-b80b72761168?auto=format&fit=crop&w=500&q=80', category: 'Ice Creams', type: 'veg' },
+  { id: 'ic4', name: 'Butterscotch Ice Cream', description: 'Caramelized nuts in creamy butterscotch.', price: 3.99, image: 'https://images.unsplash.com/photo-1580915411954-282cb1b0d780?auto=format&fit=crop&w=500&q=80', category: 'Ice Creams', type: 'veg' },
   { id: 'ic5', name: 'Black Currant Ice Cream', description: 'Tangy and sweet black currant.', price: 3.99, image: 'https://images.unsplash.com/photo-1557142046-c704a3adf364?auto=format&fit=crop&w=500&q=80', category: 'Ice Creams', type: 'veg' },
-  { id: 'ic6', name: 'Belgian Chocolate', description: 'Premium Belgian chocolate chunks.', price: 4.49, image: 'https://images.unsplash.com/photo-1580915411954-282cb1b0d780?auto=format&fit=crop&w=500&q=80', category: 'Ice Creams', type: 'veg' },
-  { id: 'ic7', name: 'Cookies and Cream', description: 'Vanilla ice cream loaded with cookie bits.', price: 4.49, image: 'https://images.unsplash.com/photo-1553177595-4de2bb0842b9?auto=format&fit=crop&w=500&q=80', category: 'Ice Creams', type: 'veg' },
+  { id: 'ic6', name: 'Belgian Chocolate', description: 'Premium Belgian chocolate chunks.', price: 4.49, image: 'https://images.unsplash.com/photo-1541920482244-51d1982846ac?auto=format&fit=crop&w=500&q=80', category: 'Ice Creams', type: 'veg' },
+  { id: 'ic7', name: 'Cookies and Cream', description: 'Vanilla ice cream loaded with cookie bits.', price: 4.49, image: 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?auto=format&fit=crop&w=500&q=80', category: 'Ice Creams', type: 'veg' },
   { id: 'ic8', name: 'Ice Cream Sundae', description: 'Mixed scoops with chocolate syrup and nuts.', price: 6.99, image: 'https://images.unsplash.com/photo-1563805042-7684c8a9e9ce?auto=format&fit=crop&w=500&q=80', category: 'Ice Creams', type: 'veg' },
   { id: 'ic9', name: 'Chocolate Brownie with Ice Cream', description: 'Warm brownie topped with vanilla ice cream.', price: 7.99, image: 'https://images.unsplash.com/photo-1624353365286-3f8d62daad51?auto=format&fit=crop&w=500&q=80', category: 'Ice Creams', type: 'veg' },
   { id: 'ic10', name: 'Waffle Cone Ice Cream', description: 'Your choice of scoop in a crispy waffle cone.', price: 4.99, image: 'https://images.unsplash.com/photo-1558500468-b80b72761168?auto=format&fit=crop&w=500&q=80', category: 'Ice Creams', type: 'veg' },

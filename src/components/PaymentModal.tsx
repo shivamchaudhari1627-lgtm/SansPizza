@@ -54,7 +54,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
           <div className="p-6 space-y-6 bg-white">
             <div className="text-center mb-6">
               <p className="text-gray-500 text-sm">Amount to Pay</p>
-              <p className="text-4xl font-serif font-bold text-[#8B4513]">${totalAmount.toFixed(2)}</p>
+              <p className="text-4xl font-serif font-bold text-[#8B4513]">₹{totalAmount.toFixed(2)}</p>
             </div>
 
             <div className="space-y-3">
@@ -128,7 +128,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
               {isProcessing ? (
                 <span className="animate-pulse">Processing Payment...</span>
               ) : (
-                `Pay $${totalAmount.toFixed(2)}`
+                `Pay ₹{totalAmount.toFixed(2)}`
               )}
             </button>
           </div>

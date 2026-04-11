@@ -98,7 +98,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, cartTota
             <div className="pt-4 border-t border-[#DAA520]/20">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-gray-600">Total to pay</span>
-                <span className="text-2xl font-serif text-[#8B4513]">${cartTotal.toFixed(2)}</span>
+                <span className="text-2xl font-serif text-[#8B4513]">₹{cartTotal.toFixed(2)}</span>
               </div>
               <button
                 onClick={handleConfirm}
@@ -108,7 +108,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, cartTota
                 {isProcessing ? (
                   <span className="animate-pulse">Processing...</span>
                 ) : (
-                  `Pay $${cartTotal.toFixed(2)}`
+                  `Pay ₹{cartTotal.toFixed(2)}`
                 )}
               </button>
             </div>

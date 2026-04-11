@@ -94,7 +94,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                         className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600"
                       >+</button>
                     </div>
-                    <span className="font-bold text-[#8B4513]">${(item.totalPrice * item.quantity).toFixed(2)}</span>
+                    <span className="font-bold text-[#8B4513]">₹{(item.totalPrice * item.quantity).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -108,15 +108,15 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
             <div className="space-y-3 mb-6">
               <div className="flex justify-between text-sm text-gray-600">
                 <span>Subtotal</span>
-                <span>${totalAmount.toFixed(2)}</span>
+                <span>₹{totalAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm text-gray-600">
                 <span>Taxes & Fees</span>
-                <span>${(totalAmount * 0.08).toFixed(2)}</span>
+                <span>₹{(totalAmount * 0.08).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-lg font-bold text-[#4A2C2A] pt-3 border-t border-gray-100">
                 <span>Total</span>
-                <span>${finalTotal.toFixed(2)}</span>
+                <span>₹{finalTotal.toFixed(2)}</span>
               </div>
             </div>
             

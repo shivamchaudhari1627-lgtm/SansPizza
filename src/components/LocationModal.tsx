@@ -11,9 +11,45 @@ interface LocationModalProps {
 const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose }) => {
   const [orderType, setOrderType] = useState<'Delivery' | 'Carryout'>('Delivery');
   const [address, setAddress] = useState('');
+  const [isDetecting, setIsDetecting] = useState(false);
   const dispatch = useDispatch();
 
   if (!isOpen) return null;
+
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+
+    setIsDetecting(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          // Using OpenStreetMap Nominatim for free reverse geocoding
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
+          const data = await response.json();
+          
+          if (data && data.display_name) {
+            setAddress(data.display_name);
+          } else {
+            setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          }
+        } catch (error) {
+          console.error("Error reverse geocoding:", error);
+          alert("Could not determine location name, but coordinates were captured.");
+        } finally {
+          setIsDetecting(false);
+        }
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        alert('Unable to retrieve your location');
+        setIsDetecting(false);
+      }
+    );
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,8 +124,14 @@ const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose }) => {
                       className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#DAA520] focus:ring-0 outline-none transition-colors"
                     />
                   </div>
-                  <button type="button" className="flex items-center gap-2 text-[#DAA520] font-bold text-sm mt-3 hover:text-[#8B4513] transition-colors">
-                    <Navigation size={16} /> Use current location
+                  <button 
+                    type="button" 
+                    onClick={handleDetectLocation}
+                    disabled={isDetecting}
+                    className="flex items-center gap-2 text-[#DAA520] font-bold text-sm mt-3 hover:text-[#8B4513] transition-colors disabled:opacity-50"
+                  >
+                    <Navigation size={16} className={isDetecting ? 'animate-spin' : ''} /> 
+                    {isDetecting ? 'Detecting...' : 'Use current location'}
                   </button>
                 </div>
               ) : (
