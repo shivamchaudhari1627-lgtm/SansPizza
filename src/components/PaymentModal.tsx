@@ -98,7 +98,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
                 <div className="text-center">
                   <div className="bg-white p-4 rounded-xl shadow-sm inline-block mb-3 border border-gray-100">
                     <QRCodeSVG 
-                      value={`upi://pay?pa=sanskriti@upi&pn=Sanskriti%20Pizza&am=${totalAmount.toFixed(2)}&cu=INR`}
+                      value={`upi://pay?pa=8963938656@ibl&pn=SANSKRITI%20DIXIT&mc=0000&mode=02&purpose=00&am=${totalAmount.toFixed(2)}&cu=INR`}
                       size={180}
                       level="H"
                       includeMargin={true}
