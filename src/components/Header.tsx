@@ -1,8 +1,11 @@
 import React from 'react';
-import { ShoppingCart, User, Menu as MenuIcon } from 'lucide-react';
-import { useSelector } from 'react-redux';
+import { ShoppingCart, User, Menu as MenuIcon, LogOut } from 'lucide-react';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../features/store';
 import { Link } from 'react-router-dom';
+import { auth } from '../firebase';
+import { signOut } from 'firebase/auth';
+import { setUser } from '../features/authSlice';
 
 interface HeaderProps {
   onOpenCart: () => void;
@@ -11,7 +14,18 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenLocation }) => {
   const { items, totalAmount, orderType, address } = useSelector((state: RootState) => state.cart);
+  const { user } = useSelector((state: RootState) => state.auth);
+  const dispatch = useDispatch();
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      dispatch(setUser(null));
+    } catch (error) {
+      console.error("Sign out error:", error);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 bg-white shadow-sm border-b border-[#DAA520]/20">
@@ -50,10 +64,31 @@ const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenLocation }) => {
 
           {/* Right - User & Cart */}
           <div className="flex items-center gap-4 md:gap-6">
-            <Link to="/login" className="hidden md:flex flex-col items-center text-gray-600 hover:text-[#8B4513] transition-colors">
-              <User size={20} />
-              <span className="text-xs font-bold mt-1">Sign In</span>
-            </Link>
+            {user ? (
+              <div className="hidden md:flex items-center gap-4">
+                <div className="flex flex-col items-end">
+                  <span className="text-xs font-bold text-[#8B4513]">Hello, {user.displayName?.split(' ')[0]}</span>
+                  <button 
+                    onClick={handleSignOut}
+                    className="text-[10px] font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest transition-colors flex items-center gap-1"
+                  >
+                    <LogOut size={10} /> Sign Out
+                  </button>
+                </div>
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border-2 border-[#DAA520]/20 shadow-sm" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-[#F4EBD0] flex items-center justify-center text-[#8B4513] font-bold text-xs border-2 border-[#DAA520]/20">
+                    {user.displayName?.charAt(0)}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link to="/login" className="hidden md:flex flex-col items-center text-gray-600 hover:text-[#8B4513] transition-colors">
+                <User size={20} />
+                <span className="text-xs font-bold mt-1">Sign In</span>
+              </Link>
+            )}
             
             <button 
               onClick={onOpenCart}

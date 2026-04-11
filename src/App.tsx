@@ -7,11 +7,11 @@ import { auth, db } from './firebase';
 import { setUser } from './features/authSlice';
 import { doc, getDoc } from 'firebase/firestore';
 import CustomerHome from './pages/customer/Home';
+import Login from './pages/auth/Login';
 
 // Placeholder Components for other roles
 const AdminLayout = () => <div className="p-4">Admin Dashboard</div>;
 const DeliveryLayout = () => <div className="p-4">Delivery Partner App</div>;
-const Login = () => <div className="p-4">Login Page</div>;
 
 const AppContent = () => {
   const dispatch = useDispatch();
@@ -29,6 +29,7 @@ const AppContent = () => {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             displayName: firebaseUser.displayName,
+            photoURL: firebaseUser.photoURL,
             role: role
           }));
         } catch (error) {
@@ -37,6 +38,7 @@ const AppContent = () => {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             displayName: firebaseUser.displayName,
+            photoURL: firebaseUser.photoURL,
             role: 'customer' // Default fallback
           }));
         }

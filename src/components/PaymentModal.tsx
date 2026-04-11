@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CreditCard, QrCode, Banknote, CheckCircle } from 'lucide-react';
+import { X, CreditCard, QrCode, Banknote, CheckCircle, LogIn } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { clearCart } from '../features/cartSlice';
 import { QRCodeSVG } from 'qrcode.react';
@@ -11,9 +11,9 @@ interface PaymentModalProps {
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmount }) => {
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'upi' | 'cod'>('upi');
+  const [step, setStep] = useState<'select' | 'details' | 'success'>('select');
+  const [paymentMethod, setPaymentMethod] = useState<'qr' | 'upi' | 'card' | 'cod' | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
   const dispatch = useDispatch();
 
   if (!isOpen) return null;
@@ -23,110 +23,147 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
     // Simulate payment processing
     setTimeout(() => {
       setIsProcessing(false);
-      setIsSuccess(true);
+      setStep('success');
       setTimeout(() => {
         dispatch(clearCart());
-        setIsSuccess(false);
+        setStep('select');
+        setPaymentMethod(null);
         onClose();
       }, 2500);
     }, 2000);
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-      <div className="bg-[#FCF9F2] w-full max-w-md rounded-2xl overflow-hidden shadow-2xl relative">
-        <div className="p-6 border-b border-[#DAA520]/20 flex justify-between items-center bg-white">
-          <h2 className="text-2xl font-serif font-bold text-[#8B4513]">Complete Payment</h2>
-          {!isProcessing && !isSuccess && (
-            <button onClick={onClose} className="text-gray-500 hover:text-[#8B4513] transition-colors">
-              <X size={24} />
-            </button>
-          )}
-        </div>
+  const handleSelectMethod = (method: 'qr' | 'upi' | 'card' | 'cod') => {
+    setPaymentMethod(method);
+    setStep('details');
+  };
 
-        {isSuccess ? (
-          <div className="p-10 text-center flex flex-col items-center bg-white">
-            <CheckCircle size={80} className="text-green-500 mb-6" />
-            <h3 className="text-3xl font-serif font-bold text-[#4A2C2A] mb-2">Payment Successful!</h3>
-            <p className="text-gray-600 mb-6">Your Sanskriti Pizza order has been placed.</p>
-            <p className="text-sm font-bold text-[#DAA520]">Redirecting to tracking...</p>
-          </div>
-        ) : (
-          <div className="p-6 space-y-6 bg-white">
-            <div className="text-center mb-6">
-              <p className="text-gray-500 text-sm">Amount to Pay</p>
+  const renderStep = () => {
+    switch (step) {
+      case 'select':
+        return (
+          <div className="p-6 space-y-4 bg-white">
+            <div className="text-center mb-8">
+              <p className="text-gray-500 text-sm uppercase tracking-widest font-bold">Total Amount</p>
               <p className="text-4xl font-serif font-bold text-[#8B4513]">₹{totalAmount.toFixed(2)}</p>
             </div>
 
-            <div className="space-y-3">
-              <p className="font-bold text-gray-800 text-sm">Select Payment Method</p>
-              
-              {/* UPI / QR Option */}
-              <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === 'upi' ? 'border-[#8B4513] bg-[#F4EBD0]/30' : 'border-gray-200 hover:border-[#DAA520]/50'}`}>
-                <input type="radio" name="payment" value="upi" checked={paymentMethod === 'upi'} onChange={() => setPaymentMethod('upi')} className="hidden" />
-                <QrCode className={`mr-4 ${paymentMethod === 'upi' ? 'text-[#8B4513]' : 'text-gray-400'}`} size={24} />
-                <div className="flex-1">
-                  <p className={`font-bold ${paymentMethod === 'upi' ? 'text-[#8B4513]' : 'text-gray-700'}`}>UPI / QR Code</p>
-                  <p className="text-xs text-gray-500">Google Pay, PhonePe, Paytm</p>
+            <p className="font-bold text-gray-800 text-sm mb-2">Choose Payment Method</p>
+            
+            <div className="grid gap-3">
+              <button 
+                onClick={() => handleSelectMethod('qr')}
+                className="flex items-center p-4 border-2 border-gray-100 rounded-2xl hover:border-[#DAA520] hover:bg-[#F4EBD0]/20 transition-all text-left group"
+              >
+                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
+                  <QrCode size={24} />
                 </div>
-              </label>
+                <div className="ml-4">
+                  <p className="font-bold text-gray-800">Scan QR Code</p>
+                  <p className="text-xs text-gray-500">Fastest way to pay</p>
+                </div>
+              </button>
 
-              {/* Card Option */}
-              <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === 'card' ? 'border-[#8B4513] bg-[#F4EBD0]/30' : 'border-gray-200 hover:border-[#DAA520]/50'}`}>
-                <input type="radio" name="payment" value="card" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} className="hidden" />
-                <CreditCard className={`mr-4 ${paymentMethod === 'card' ? 'text-[#8B4513]' : 'text-gray-400'}`} size={24} />
-                <div className="flex-1">
-                  <p className={`font-bold ${paymentMethod === 'card' ? 'text-[#8B4513]' : 'text-gray-700'}`}>Credit / Debit Card</p>
-                  <p className="text-xs text-gray-500">Visa, Mastercard, Amex</p>
+              <button 
+                onClick={() => handleSelectMethod('upi')}
+                className="flex items-center p-4 border-2 border-gray-100 rounded-2xl hover:border-[#DAA520] hover:bg-[#F4EBD0]/20 transition-all text-left group"
+              >
+                <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 group-hover:bg-purple-100 transition-colors">
+                  <LogIn size={24} />
                 </div>
-              </label>
+                <div className="ml-4">
+                  <p className="font-bold text-gray-800">UPI ID / VPA</p>
+                  <p className="text-xs text-gray-500">Pay using your UPI ID</p>
+                </div>
+              </button>
 
-              {/* COD Option */}
-              <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-[#8B4513] bg-[#F4EBD0]/30' : 'border-gray-200 hover:border-[#DAA520]/50'}`}>
-                <input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="hidden" />
-                <Banknote className={`mr-4 ${paymentMethod === 'cod' ? 'text-[#8B4513]' : 'text-gray-400'}`} size={24} />
-                <div className="flex-1">
-                  <p className={`font-bold ${paymentMethod === 'cod' ? 'text-[#8B4513]' : 'text-gray-700'}`}>Cash on Delivery</p>
-                  <p className="text-xs text-gray-500">Pay at your doorstep</p>
+              <button 
+                onClick={() => handleSelectMethod('card')}
+                className="flex items-center p-4 border-2 border-gray-100 rounded-2xl hover:border-[#DAA520] hover:bg-[#F4EBD0]/20 transition-all text-left group"
+              >
+                <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600 group-hover:bg-orange-100 transition-colors">
+                  <CreditCard size={24} />
                 </div>
-              </label>
+                <div className="ml-4">
+                  <p className="font-bold text-gray-800">Card Payment</p>
+                  <p className="text-xs text-gray-500">Visa, Mastercard, RuPay</p>
+                </div>
+              </button>
+
+              <button 
+                onClick={() => handleSelectMethod('cod')}
+                className="flex items-center p-4 border-2 border-gray-100 rounded-2xl hover:border-[#DAA520] hover:bg-[#F4EBD0]/20 transition-all text-left group"
+              >
+                <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600 group-hover:bg-green-100 transition-colors">
+                  <Banknote size={24} />
+                </div>
+                <div className="ml-4">
+                  <p className="font-bold text-gray-800">Cash on Delivery</p>
+                  <p className="text-xs text-gray-500">Pay when you get it</p>
+                </div>
+              </button>
             </div>
+          </div>
+        );
 
-            {/* Dynamic Payment Content */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
-              {paymentMethod === 'upi' && (
+      case 'details':
+        return (
+          <div className="p-6 bg-white">
+            <button 
+              onClick={() => setStep('select')}
+              className="text-[#8B4513] font-bold text-sm mb-6 flex items-center gap-1 hover:underline"
+            >
+              ← Back to methods
+            </button>
+
+            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-6">
+              {paymentMethod === 'qr' && (
                 <div className="text-center">
-                  <div className="bg-white p-4 rounded-xl shadow-sm inline-block mb-3 border border-gray-100">
+                  <div className="bg-white p-4 rounded-2xl shadow-sm inline-block mb-4 border border-gray-100">
                     <QRCodeSVG 
                       value={`upi://pay?pa=8963938656@ibl&pn=SANSKRITI%20DIXIT&mc=0000&mode=02&purpose=00&am=${totalAmount.toFixed(2)}&cu=INR`}
-                      size={180}
+                      size={200}
                       level="H"
                       includeMargin={true}
                     />
                   </div>
-                  <p className="text-sm font-bold text-gray-700">Scan with any UPI App</p>
+                  <p className="text-sm font-bold text-gray-700">Scan & Pay with any UPI App</p>
                   <p className="text-xs text-gray-500 mt-1">Amount: ₹{totalAmount.toFixed(2)}</p>
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <p className="text-xs text-gray-500 mb-2">or enter UPI ID below</p>
-                    <input type="text" placeholder="username@upi" className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#DAA520]" />
+                </div>
+              )}
+
+              {paymentMethod === 'upi' && (
+                <div className="space-y-4">
+                  <div className="text-center mb-4">
+                    <p className="font-bold text-gray-800">Enter your UPI ID</p>
+                    <p className="text-xs text-gray-500">A payment request will be sent to your app</p>
                   </div>
+                  <input 
+                    type="text" 
+                    placeholder="e.g., mobile-number@upi" 
+                    className="w-full p-4 border-2 border-gray-200 rounded-xl text-lg focus:outline-none focus:border-[#DAA520] text-center font-medium" 
+                  />
                 </div>
               )}
 
               {paymentMethod === 'card' && (
-                <div className="space-y-3">
-                  <input type="text" placeholder="Card Number" className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#DAA520]" />
-                  <div className="flex gap-3">
-                    <input type="text" placeholder="MM/YY" className="w-1/2 p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#DAA520]" />
-                    <input type="text" placeholder="CVV" className="w-1/2 p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#DAA520]" />
+                <div className="space-y-4">
+                  <input type="text" placeholder="Card Number" className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#DAA520]" />
+                  <div className="flex gap-4">
+                    <input type="text" placeholder="MM/YY" className="w-1/2 p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#DAA520]" />
+                    <input type="password" placeholder="CVV" className="w-1/2 p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#DAA520]" />
                   </div>
-                  <input type="text" placeholder="Name on Card" className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#DAA520]" />
+                  <input type="text" placeholder="Cardholder Name" className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#DAA520]" />
                 </div>
               )}
 
               {paymentMethod === 'cod' && (
-                <div className="text-center py-4">
-                  <p className="text-sm text-gray-600">Please keep exact change ready to help our delivery partners.</p>
+                <div className="text-center py-8">
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 mx-auto mb-4">
+                    <Banknote size={40} />
+                  </div>
+                  <p className="font-bold text-gray-800">Cash on Delivery Selected</p>
+                  <p className="text-sm text-gray-500 mt-2 px-4">Please keep exact change ready for a smooth delivery experience.</p>
                 </div>
               )}
             </div>
@@ -134,16 +171,54 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
             <button
               onClick={handlePayment}
               disabled={isProcessing}
-              className="w-full bg-[#8B4513] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#DAA520] transition-colors shadow-md flex justify-center items-center gap-2 mt-6 disabled:opacity-70"
+              className="w-full bg-[#8B4513] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#DAA520] transition-all shadow-lg flex justify-center items-center gap-2 disabled:opacity-70"
             >
               {isProcessing ? (
-                <span className="animate-pulse">Processing Payment...</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Processing...</span>
+                </div>
               ) : (
-                `Pay ₹${totalAmount.toFixed(2)}`
+                paymentMethod === 'cod' ? 'Confirm Order' : `Pay ₹${totalAmount.toFixed(2)}`
               )}
             </button>
           </div>
-        )}
+        );
+
+      case 'success':
+        return (
+          <div className="p-12 text-center flex flex-col items-center bg-white">
+            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center text-green-500 mb-8 animate-bounce">
+              <CheckCircle size={60} />
+            </div>
+            <h3 className="text-3xl font-serif font-bold text-[#4A2C2A] mb-3">Order Placed!</h3>
+            <p className="text-gray-600 mb-8 leading-relaxed">
+              Your payment was successful and your delicious pizza is being prepared.
+            </p>
+            <div className="w-full bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Order Status</p>
+              <p className="text-[#DAA520] font-bold mt-1">Preparing your meal...</p>
+            </div>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[60] flex items-center justify-center p-4">
+      <div className="bg-[#FCF9F2] w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
+        <div className="p-6 border-b border-[#DAA520]/10 flex justify-between items-center bg-white">
+          <h2 className="text-2xl font-serif font-bold text-[#8B4513]">
+            {step === 'select' ? 'Payment' : step === 'details' ? 'Payment Details' : 'Success'}
+          </h2>
+          {step !== 'success' && (
+            <button onClick={onClose} className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all">
+              <X size={20} />
+            </button>
+          )}
+        </div>
+
+        {renderStep()}
       </div>
     </div>
   );
