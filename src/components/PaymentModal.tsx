@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, CreditCard, QrCode, Banknote, CheckCircle } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { clearCart } from '../features/cartSlice';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -95,10 +96,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
             <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
               {paymentMethod === 'upi' && (
                 <div className="text-center">
-                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=sanskriti@upi&pn=SanskritiPizza&am=100" alt="UPI QR Code" className="mx-auto mb-3 rounded-lg shadow-sm" />
-                  <p className="text-sm font-bold text-gray-700">Scan to Pay</p>
-                  <p className="text-xs text-gray-500 mt-1">or enter UPI ID below</p>
-                  <input type="text" placeholder="username@upi" className="mt-3 w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#DAA520]" />
+                  <div className="bg-white p-4 rounded-xl shadow-sm inline-block mb-3 border border-gray-100">
+                    <QRCodeSVG 
+                      value={`upi://pay?pa=sanskriti@upi&pn=Sanskriti%20Pizza&am=${totalAmount.toFixed(2)}&cu=INR`}
+                      size={180}
+                      level="H"
+                      includeMargin={true}
+                    />
+                  </div>
+                  <p className="text-sm font-bold text-gray-700">Scan with any UPI App</p>
+                  <p className="text-xs text-gray-500 mt-1">Amount: ₹{totalAmount.toFixed(2)}</p>
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <p className="text-xs text-gray-500 mb-2">or enter UPI ID below</p>
+                    <input type="text" placeholder="username@upi" className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#DAA520]" />
+                  </div>
                 </div>
               )}
 
