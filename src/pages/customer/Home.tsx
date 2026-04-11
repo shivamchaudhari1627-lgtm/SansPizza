@@ -1,20 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Header from '../../components/Header';
 import LocationModal from '../../components/LocationModal';
 import CustomizeModal from '../../components/CustomizeModal';
 import CartSidebar from '../../components/CartSidebar';
+import Pizza3D from '../../components/Pizza3D';
 import { menuItems, menuCategories, MenuItem } from '../../data/menu';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../features/store';
+import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 
 const CustomerHome = () => {
-  const [activeCategory, setActiveCategory] = useState(menuCategories[0]);
+  const [activeCategory, setActiveCategory] = useState<typeof menuCategories[number]>(menuCategories[0]);
   const [vegOnly, setVegOnly] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const { orderType } = useSelector((state: RootState) => state.cart);
+  const { scrollY } = useScroll();
+  const y1 = useTransform(scrollY, [0, 500], [0, 200]);
+  const y2 = useTransform(scrollY, [0, 500], [0, -150]);
+  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+  const scale = useTransform(scrollY, [0, 300], [1, 0.8]);
 
   // Open location modal on first load if no order type is set
   useEffect(() => {
@@ -40,28 +47,75 @@ const CustomerHome = () => {
       />
 
       {/* Hero Banner */}
-      <div className="bg-[#F4EBD0] relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/food.png')]"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 relative z-10 flex flex-col md:flex-row items-center">
-          <div className="md:w-1/2 text-center md:text-left mb-8 md:mb-0">
-            <h2 className="text-4xl md:text-6xl font-serif font-bold text-[#8B4513] leading-tight mb-4">
-              Premium Taste.<br/>Homegrown Vibe.
-            </h2>
-            <p className="text-lg text-gray-700 mb-6 max-w-md">
+      <div className="bg-[#F4EBD0] relative overflow-hidden min-h-[600px] flex items-center">
+        <motion.div 
+          style={{ y: y1 }}
+          className="absolute inset-0 opacity-10"
+        ></motion.div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 relative z-10 flex flex-col md:flex-row items-center w-full">
+          <motion.div 
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            style={{ opacity, scale }}
+            className="md:w-1/2 text-center md:text-left mb-8 md:mb-0"
+          >
+            <motion.h2 
+              className="text-5xl md:text-7xl font-serif font-bold text-[#8B4513] leading-tight mb-6"
+            >
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="block"
+              >
+                Premium Taste.
+              </motion.span>
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="block text-[#DAA520]"
+              >
+                Homegrown Vibe.
+              </motion.span>
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-xl text-gray-700 mb-8 max-w-md"
+            >
               Experience the perfect blend of Vedic wisdom and modern pizza crafting. Try our new Ashwagandha-infused crust!
-            </p>
-            <button className="bg-[#DAA520] text-white px-8 py-3 rounded-full font-bold text-lg hover:bg-[#8B4513] transition-colors shadow-lg">
+            </motion.p>
+            <motion.button 
+              whileHover={{ scale: 1.05, backgroundColor: "#8B4513" }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-[#DAA520] text-white px-10 py-4 rounded-full font-bold text-xl hover:bg-[#8B4513] transition-colors shadow-xl"
+            >
               Order Now
-            </button>
-          </div>
-          <div className="md:w-1/2 flex justify-center">
-            <img 
-              src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=600&q=80" 
-              alt="Featured Pizza" 
-              className="w-64 h-64 md:w-96 md:h-96 object-cover rounded-full border-8 border-white shadow-2xl"
-              referrerPolicy="no-referrer"
-            />
-          </div>
+            </motion.button>
+          </motion.div>
+
+          <motion.div 
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ duration: 1, ease: "backOut" }}
+            style={{ y: y2 }}
+            className="md:w-1/2 flex justify-center relative min-h-[400px]"
+          >
+            <Pizza3D />
+            
+            {/* Floating Badges */}
+            <motion.div
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -top-4 -right-4 bg-white p-4 rounded-2xl shadow-xl border border-gray-100 hidden md:block"
+            >
+              <p className="text-[#DAA520] font-black text-xs uppercase tracking-tighter">New Arrival</p>
+              <p className="font-serif font-bold text-[#8B4513]">Vedic Crust</p>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
 
@@ -112,42 +166,65 @@ const CustomerHome = () => {
 
       {/* Menu Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h3 className="text-3xl font-serif font-bold text-[#8B4513] mb-8">{activeCategory}</h3>
+        <motion.h3 
+          layout
+          className="text-3xl font-serif font-bold text-[#8B4513] mb-8"
+        >
+          {activeCategory}
+        </motion.h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredMenu.map(item => (
-            <div key={item.id} className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow border border-gray-100 flex flex-col">
-              <div className="relative h-48">
-                <img 
-                  src={item.image} 
-                  alt={item.name} 
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute top-4 right-4 bg-white p-1 rounded-sm shadow-sm">
-                  <div className={`w-4 h-4 border-2 flex items-center justify-center ${item.type === 'veg' ? 'border-green-600' : 'border-red-600'}`}>
-                    <div className={`w-2 h-2 rounded-full ${item.type === 'veg' ? 'bg-green-600' : 'bg-red-600'}`}></div>
+        <motion.div 
+          layout
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        >
+          <AnimatePresence mode="popLayout">
+            {filteredMenu.map(item => (
+              <motion.div 
+                key={item.id}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3 }}
+                whileHover={{ y: -10 }}
+                className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-100 flex flex-col group"
+              >
+                <div className="relative h-56 overflow-hidden">
+                  <motion.img 
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ duration: 0.6 }}
+                    src={item.image} 
+                    alt={item.name} 
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-1.5 rounded-lg shadow-sm">
+                    <div className={`w-4 h-4 border-2 flex items-center justify-center ${item.type === 'veg' ? 'border-green-600' : 'border-red-600'}`}>
+                      <div className={`w-2 h-2 rounded-full ${item.type === 'veg' ? 'bg-green-600' : 'bg-red-600'}`}></div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="p-6 flex flex-col flex-grow">
-                <h4 className="text-xl font-bold text-gray-800 mb-2">{item.name}</h4>
-                <p className="text-sm text-gray-600 mb-6 flex-grow">{item.description}</p>
                 
-                <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
-                  <span className="text-xl font-bold text-[#8B4513]">₹{item.price.toFixed(2)}</span>
-                  <button 
-                    onClick={() => handleCustomize(item)}
-                    className="bg-[#DAA520] text-white px-6 py-2 rounded-xl font-bold hover:bg-[#8B4513] transition-colors shadow-md flex items-center gap-2"
-                  >
-                    Buy
-                  </button>
+                <div className="p-6 flex flex-col flex-grow">
+                  <h4 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-[#DAA520] transition-colors">{item.name}</h4>
+                  <p className="text-sm text-gray-600 mb-6 flex-grow leading-relaxed">{item.description}</p>
+                  
+                  <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
+                    <span className="text-2xl font-black text-[#8B4513]">₹{item.price.toFixed(2)}</span>
+                    <motion.button 
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleCustomize(item)}
+                      className="bg-[#DAA520] text-white px-8 py-2.5 rounded-xl font-bold hover:bg-[#8B4513] transition-colors shadow-lg flex items-center gap-2"
+                    >
+                      Buy
+                    </motion.button>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
       </div>
 
       <LocationModal 
