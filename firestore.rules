@@ -1,0 +1,152 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional)
+    //   - age: number (optional)
+    //   - role: string (required, enum: ['customer', 'admin', 'delivery'])
+    //   - createdAt: string (required)
+    //   - location: string (optional)
+    //   - lat: number (optional)
+    //   - lng: number (optional)
+    //
+    // Collection: orders
+    // Document ID: {orderId}
+    // Fields:
+    //   - userId: string (required)
+    //   - customerName: string (required)
+    //   - customerEmail: string (optional)
+    //   - items: list (required)
+    //   - totalAmount: number (required)
+    //   - orderType: string (required)
+    //   - address: string (optional)
+    //   - paymentMethod: string (optional)
+    //   - status: string (required, enum: ['pending', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'])
+    //   - createdAt: string (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+        (request.auth.token.email == "shivamchaudhari1627@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isDelivery() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'delivery';
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidRole(role) {
+      return role in ['customer', 'admin', 'delivery'];
+    }
+
+    function isValidOrderStatus(status) {
+      return status in ['pending', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'];
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasRequiredFields(['uid', 'email', 'role', 'createdAt']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.role is string && isValidRole(data.role) &&
+             data.createdAt is string &&
+             (!('displayName' in data) || data.displayName is string) &&
+             (!('photoURL' in data) || data.photoURL is string) &&
+             (!('age' in data) || data.age is number) &&
+             (!('location' in data) || data.location is string) &&
+             (!('lat' in data) || data.lat is number) &&
+             (!('lng' in data) || data.lng is number);
+    }
+
+    function isValidOrder(data) {
+      return hasRequiredFields(['userId', 'customerName', 'items', 'totalAmount', 'orderType', 'status', 'createdAt']) &&
+             data.userId is string &&
+             data.customerName is string &&
+             data.items is list &&
+             data.totalAmount is number && data.totalAmount >= 0 &&
+             data.orderType is string &&
+             data.status is string && isValidOrderStatus(data.status) &&
+             data.createdAt is string &&
+             (!('customerEmail' in data) || data.customerEmail is string) &&
+             (!('address' in data) || data.address is string) &&
+             (!('paymentMethod' in data) || data.paymentMethod is string);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      // Users can read their own profile. Admins can read all profiles.
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Users can create their own profile. They can only set themselves as 'customer' unless they are an admin.
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && (
+        request.resource.data.role == 'customer' || isAdmin()
+      );
+      
+      // Users can update their own profile, but cannot change their role. Admins can update any profile.
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && (
+        (isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin()
+      );
+      
+      // Only admins can delete users.
+      allow delete: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      // Users can read their own orders. Admins and delivery personnel can read all orders.
+      allow read: if (isAuthenticated() && resource.data.userId == request.auth.uid) || isAdmin() || isDelivery();
+      
+      // Anyone (even guests) can create an order. If authenticated, the userId must match their uid or be 'guest'.
+      allow create: if isValidOrder(request.resource.data) && (
+        !isAuthenticated() || request.resource.data.userId == request.auth.uid || request.resource.data.userId == 'guest'
+      );
+      
+      // Admins can update any order. Delivery personnel can update order status.
+      allow update: if isAuthenticated() && isValidOrder(request.resource.data) && (
+        isAdmin() || 
+        (isDelivery() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']))
+      );
+      
+      // Only admins can delete orders.
+      allow delete: if isAdmin();
+    }
+  }
+}

@@ -64,10 +64,17 @@ const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenLocation }) => {
 
           {/* Right - User & Cart */}
           <div className="flex items-center gap-4 md:gap-6">
+            {user?.role === 'admin' && (
+              <Link to="/admin" className="hidden md:flex items-center gap-2 bg-[#8B4513] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#DAA520] transition-colors">
+                Admin Dashboard
+              </Link>
+            )}
             {user ? (
               <div className="hidden md:flex items-center gap-4">
                 <div className="flex flex-col items-end">
-                  <span className="text-xs font-bold text-[#8B4513]">Hello, {user.displayName?.split(' ')[0]}</span>
+                  <Link to="/profile" className="text-xs font-bold text-[#8B4513] hover:text-[#DAA520] transition-colors">
+                    Hello, {user.displayName?.split(' ')[0] || 'User'}
+                  </Link>
                   <button 
                     onClick={handleSignOut}
                     className="text-[10px] font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest transition-colors flex items-center gap-1"
@@ -75,13 +82,15 @@ const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenLocation }) => {
                     <LogOut size={10} /> Sign Out
                   </button>
                 </div>
-                {user.photoURL ? (
-                  <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border-2 border-[#DAA520]/20 shadow-sm" />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-[#8B4513] font-bold text-xs border-2 border-[#DAA520]/20">
-                    {user.displayName?.charAt(0)}
-                  </div>
-                )}
+                <Link to="/profile">
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border-2 border-[#DAA520]/20 shadow-sm hover:scale-105 transition-transform" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-[#8B4513] font-bold text-xs border-2 border-[#DAA520]/20 hover:scale-105 transition-transform">
+                      {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                    </div>
+                  )}
+                </Link>
               </div>
             ) : (
               <Link to="/login" className="hidden md:flex flex-col items-center text-gray-600 hover:text-[#8B4513] transition-colors">

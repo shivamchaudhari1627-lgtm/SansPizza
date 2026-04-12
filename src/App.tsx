@@ -7,10 +7,11 @@ import { auth, db } from './firebase';
 import { setUser } from './features/authSlice';
 import { doc, getDoc } from 'firebase/firestore';
 import CustomerHome from './pages/customer/Home';
+import Profile from './pages/customer/Profile';
 import Login from './pages/auth/Login';
+import AdminDashboard from './pages/admin/Dashboard';
 
 // Placeholder Components for other roles
-const AdminLayout = () => <div className="p-4">Admin Dashboard</div>;
 const DeliveryLayout = () => <div className="p-4">Delivery Partner App</div>;
 
 const AppContent = () => {
@@ -22,9 +23,17 @@ const AppContent = () => {
       if (firebaseUser) {
         // Fetch user role from Firestore
         try {
+          const ADMIN_EMAIL = 'shivamchaudhari1627@gmail.com';
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-          const role = userDoc.exists() ? userDoc.data().role : 'customer';
+          let role = userDoc.exists() ? userDoc.data().role : 'customer';
           
+          // Enforce admin email rule
+          if (firebaseUser.email === ADMIN_EMAIL && role !== 'admin') {
+            role = 'admin';
+          } else if (firebaseUser.email !== ADMIN_EMAIL && role === 'admin') {
+            role = 'customer';
+          }
+
           dispatch(setUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email,
@@ -58,9 +67,10 @@ const AppContent = () => {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
         
         {/* Role-based routing */}
-        <Route path="/admin/*" element={user?.role === 'admin' ? <AdminLayout /> : <Navigate to="/login" />} />
+        <Route path="/admin/*" element={user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/login" />} />
         <Route path="/delivery/*" element={user?.role === 'delivery' ? <DeliveryLayout /> : <Navigate to="/login" />} />
         
         {/* Default to customer app */}

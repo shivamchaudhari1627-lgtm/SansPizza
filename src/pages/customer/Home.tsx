@@ -8,6 +8,7 @@ import { menuItems, menuCategories, MenuItem } from '../../data/menu';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../features/store';
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
+import { Link } from 'react-router-dom';
 
 const CustomerHome = () => {
   const [activeCategory, setActiveCategory] = useState<typeof menuCategories[number]>(menuCategories[0]);
@@ -17,6 +18,7 @@ const CustomerHome = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const { orderType } = useSelector((state: RootState) => state.cart);
+  const { user } = useSelector((state: RootState) => state.auth);
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 500], [0, 200]);
   const y2 = useTransform(scrollY, [0, 500], [0, -150]);
@@ -97,14 +99,39 @@ const CustomerHome = () => {
             >
               Experience the perfect blend of Vedic wisdom and modern pizza crafting. Try our new Ashwagandha-infused crust!
             </motion.p>
-            <motion.button 
-              whileHover={{ scale: 1.05, backgroundColor: "#8B4513", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleOrderNow}
-              className="bg-[#DAA520] text-white px-10 py-4 rounded-full font-bold text-xl hover:bg-[#8B4513] transition-all shadow-xl border-b-4 border-[#B8860B] active:border-b-0"
-            >
-              Order Now
-            </motion.button>
+            <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+              <motion.button 
+                whileHover={{ scale: 1.05, backgroundColor: "#8B4513", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleOrderNow}
+                className="bg-[#DAA520] text-white px-10 py-4 rounded-full font-bold text-xl hover:bg-[#8B4513] transition-all shadow-xl border-b-4 border-[#B8860B] active:border-b-0"
+              >
+                Order Now
+              </motion.button>
+              
+              {!user && (
+                <>
+                  <Link to="/login?role=customer">
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="bg-white text-[#8B4513] px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all shadow-xl border-2 border-white"
+                    >
+                      Customer Login
+                    </motion.button>
+                  </Link>
+                  <Link to="/login?role=admin">
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="bg-transparent text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/10 transition-all shadow-xl border-2 border-white/50"
+                    >
+                      Admin Login
+                    </motion.button>
+                  </Link>
+                </>
+              )}
+            </div>
           </motion.div>
 
           <motion.div 

@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { X, CreditCard, QrCode, Banknote, CheckCircle, LogIn } from 'lucide-react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { clearCart } from '../features/cartSlice';
 import { QRCodeSVG } from 'qrcode.react';
+import { db } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
+import { RootState } from '../features/store';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -15,18 +18,37 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
   const [paymentMethod, setPaymentMethod] = useState<'qr' | 'upi' | 'card' | 'cod' | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const dispatch = useDispatch();
+  
+  const { items, orderType, address } = useSelector((state: RootState) => state.cart);
+  const { user } = useSelector((state: RootState) => state.auth);
 
   if (!isOpen) return null;
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (paymentMethod === 'qr' || paymentMethod === 'upi') {
       const upiUrl = `upi://pay?pa=8963938656@ibl&pn=SANSKRITI%20DIXIT&mc=0000&mode=02&purpose=00&am=${totalAmount.toFixed(2)}&cu=INR`;
       window.location.href = upiUrl;
     }
 
     setIsProcessing(true);
-    // Simulate payment processing
-    setTimeout(() => {
+    
+    try {
+      // Save order to Firestore
+      const orderData = {
+        userId: user?.uid || 'guest',
+        customerName: user?.displayName || 'Guest',
+        customerEmail: user?.email || 'N/A',
+        items: items,
+        totalAmount: totalAmount,
+        orderType: orderType,
+        address: address || 'N/A',
+        paymentMethod: paymentMethod,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      };
+
+      await addDoc(collection(db, 'orders'), orderData);
+
       setIsProcessing(false);
       setStep('success');
       setTimeout(() => {
@@ -35,7 +57,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
         setPaymentMethod(null);
         onClose();
       }, 2500);
-    }, 2000);
+    } catch (error) {
+      console.error("Error saving order:", error);
+      setIsProcessing(false);
+      alert("Failed to process order. Please try again.");
+    }
   };
 
   const handleSelectMethod = (method: 'qr' | 'upi' | 'card' | 'cod') => {
