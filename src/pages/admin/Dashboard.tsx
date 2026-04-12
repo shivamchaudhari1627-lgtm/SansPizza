@@ -169,7 +169,7 @@ const AdminDashboard = () => {
                             </div>
                             <div>
                               <p className="font-bold text-gray-800">{item.name}</p>
-                              <p className="text-xs text-gray-500">{item.size} • {item.crust}</p>
+                              {item.size && item.crust && <p className="text-xs text-gray-500">{item.size} • {item.crust}</p>}
                             </div>
                           </div>
                           <p className="font-bold text-gray-800">₹{(item.price * item.quantity).toFixed(2)}</p>

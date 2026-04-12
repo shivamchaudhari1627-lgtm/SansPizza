@@ -160,55 +160,57 @@ const PizzaSlice = ({
         onToggle();
       }}
     >
-      {/* Main Crust - Irregular look */}
-      <mesh castShadow receiveShadow>
-        <cylinderGeometry args={[2, 2.05, 0.35, 32, 1, false, 0, angleStep]} />
-        <meshPhysicalMaterial
-          color="#ffb347"
-          roughness={0.8}
-          metalness={0.1}
-          reflectivity={0.3}
-        />
-      </mesh>
+      <group>
+        {/* Main Crust - Irregular look */}
+        <mesh castShadow receiveShadow>
+          <cylinderGeometry args={[2, 2.05, 0.35, 32, 1, false, 0, angleStep]} />
+          <meshPhysicalMaterial
+            color="#ffb347"
+            roughness={0.8}
+            metalness={0.1}
+            reflectivity={0.3}
+          />
+        </mesh>
 
-      {/* Puffy Outer Crust - Matches the "sculpted" look in the image */}
-      <mesh position={[0, 0.12, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <torusGeometry args={[1.92, 0.18, 16, 40, angleStep]} />
-        <meshPhysicalMaterial 
-          color="#e67e22" 
-          roughness={0.7}
-          emissive="#d35400"
-          emissiveIntensity={0.2}
-        />
-      </mesh>
+        {/* Puffy Outer Crust - Matches the "sculpted" look in the image */}
+        <mesh position={[0, 0.12, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+          <torusGeometry args={[1.92, 0.18, 16, 40, angleStep]} />
+          <meshPhysicalMaterial 
+            color="#e67e22" 
+            roughness={0.7}
+            emissive="#d35400"
+            emissiveIntensity={0.2}
+          />
+        </mesh>
 
-      {/* Sauce Layer - Deep rich red */}
-      <mesh position={[0, 0.14, 0]} receiveShadow>
-        <cylinderGeometry args={[1.82, 1.82, 0.03, 32, 1, false, 0, angleStep]} />
-        <meshPhysicalMaterial color="#c0392b" roughness={0.2} clearcoat={1} />
-      </mesh>
+        {/* Sauce Layer - Deep rich red */}
+        <mesh position={[0, 0.14, 0]} receiveShadow>
+          <cylinderGeometry args={[1.82, 1.82, 0.03, 32, 1, false, 0, angleStep]} />
+          <meshPhysicalMaterial color="#c0392b" roughness={0.2} clearcoat={1} />
+        </mesh>
 
-      {/* Bubbly Cheese Layer - Simplified for mobile compatibility */}
-      <mesh position={[0, 0.18, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[1.78, 1.78, 0.1, 32, 1, false, 0, angleStep]} />
-        <meshStandardMaterial
-          color="#f1c40f"
-          roughness={0.4}
-          metalness={0}
-          emissive="#f39c12"
-          emissiveIntensity={0.2}
-        />
-      </mesh>
+        {/* Bubbly Cheese Layer - Simplified for mobile compatibility */}
+        <mesh position={[0, 0.18, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[1.78, 1.78, 0.1, 32, 1, false, 0, angleStep]} />
+          <meshStandardMaterial
+            color="#f1c40f"
+            roughness={0.4}
+            metalness={0}
+            emissive="#f39c12"
+            emissiveIntensity={0.2}
+          />
+        </mesh>
 
-      {/* Toppings - Integrated into the cheese */}
-      {toppingsData.map((t, i) => (
-        <Topping
-          key={i}
-          type={t.type}
-          position={[Math.cos(t.a) * t.r, 0.24, Math.sin(t.a) * t.r]}
-          rotation={t.rotation}
-        />
-      ))}
+        {/* Toppings - Integrated into the cheese */}
+        {toppingsData.map((t, i) => (
+          <Topping
+            key={i}
+            type={t.type}
+            position={[Math.cos(t.a) * t.r, 0.24, Math.sin(t.a) * t.r]}
+            rotation={t.rotation}
+          />
+        ))}
+      </group>
 
       {/* Cheese Strings when pulled */}
       <CheeseStrings isPulled={isPulled} angle={0} />
@@ -339,8 +341,6 @@ const Pizza3D = () => {
             far={4}
             color="#000000"
           />
-
-          <Environment preset="city" />
         </React.Suspense>
       </Canvas>
     </div>

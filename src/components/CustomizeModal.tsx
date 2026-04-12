@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, Minus } from 'lucide-react';
+import { X, Plus, Minus, Check } from 'lucide-react';
 import { MenuItem, crustOptions, sizeOptions, toppingOptions } from '../data/menu';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../features/cartSlice';
@@ -19,6 +19,8 @@ const CustomizeModal: React.FC<CustomizeModalProps> = ({ item, isOpen, onClose }
 
   if (!isOpen || !item) return null;
 
+  const isCustomizable = !['Desserts', 'Drinks', 'Sides'].includes(item.category);
+
   const toggleTopping = (toppingId: string) => {
     setSelectedToppings(prev => 
       prev.includes(toppingId) 
@@ -28,6 +30,9 @@ const CustomizeModal: React.FC<CustomizeModalProps> = ({ item, isOpen, onClose }
   };
 
   const calculateTotal = () => {
+    if (!isCustomizable) {
+      return item.price;
+    }
     let total = item.price * selectedSize.multiplier;
     total += selectedCrust.price;
     
@@ -49,9 +54,9 @@ const CustomizeModal: React.FC<CustomizeModalProps> = ({ item, isOpen, onClose }
       basePrice: item.price,
       totalPrice: totalPrice,
       quantity: quantity,
-      size: selectedSize.name,
-      crust: selectedCrust.name,
-      toppings: selectedToppings,
+      size: isCustomizable ? selectedSize.name : '',
+      crust: isCustomizable ? selectedCrust.name : '',
+      toppings: isCustomizable ? selectedToppings : [],
       image: item.image
     }));
     onClose();
@@ -64,13 +69,13 @@ const CustomizeModal: React.FC<CustomizeModalProps> = ({ item, isOpen, onClose }
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row relative">
+      <div className={`bg-white w-full ${isCustomizable ? 'max-w-4xl' : 'max-w-md'} max-h-[90vh] rounded-2xl overflow-hidden shadow-2xl flex flex-col ${isCustomizable ? 'md:flex-row' : ''} relative`}>
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-[#8B4513] z-10 bg-white rounded-full p-1 shadow-sm">
           <X size={24} />
         </button>
 
         {/* Left Side - Image & Summary */}
-        <div className="md:w-2/5 bg-[#FCF9F2] p-8 flex flex-col border-r border-[#DAA520]/20 overflow-y-auto">
+        <div className={`bg-[#FCF9F2] p-8 flex flex-col overflow-y-auto ${isCustomizable ? 'md:w-2/5 border-r border-[#DAA520]/20' : 'w-full'}`}>
           <img 
             src={item.image} 
             alt={item.name} 
@@ -80,26 +85,61 @@ const CustomizeModal: React.FC<CustomizeModalProps> = ({ item, isOpen, onClose }
           <h2 className="text-2xl font-serif font-bold text-[#4A2C2A] mb-2">{item.name}</h2>
           <p className="text-gray-600 text-sm mb-6">{item.description}</p>
           
-          <div className="mt-auto bg-white p-4 rounded-xl border border-[#DAA520]/30 shadow-sm">
-            <h4 className="font-bold text-[#8B4513] mb-2 border-b border-gray-100 pb-2">Your Selection</h4>
-            <ul className="text-sm text-gray-600 space-y-1 mb-4">
-              <li>• {selectedSize.name} Size</li>
-              <li>• {selectedCrust.name}</li>
-              {selectedToppings.map(tId => {
-                const t = toppingOptions.find(opt => opt.id === tId);
-                return t ? <li key={tId}>• Add {t.name}</li> : null;
-              })}
-            </ul>
-            <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-              <span className="font-bold text-gray-800">Item Total</span>
-              <span className="text-xl font-serif font-bold text-[#DAA520]">₹{calculateTotal().toFixed(2)}</span>
+          {isCustomizable && (
+            <div className="mt-auto bg-white p-4 rounded-xl border border-[#DAA520]/30 shadow-sm">
+              <h4 className="font-bold text-[#8B4513] mb-2 border-b border-gray-100 pb-2">Your Selection</h4>
+              <ul className="text-sm text-gray-600 space-y-1 mb-4">
+                <li>• {selectedSize.name} Size</li>
+                <li>• {selectedCrust.name}</li>
+                {selectedToppings.map(tId => {
+                  const t = toppingOptions.find(opt => opt.id === tId);
+                  return t ? <li key={tId}>• Add {t.name}</li> : null;
+                })}
+              </ul>
+              <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                <span className="font-bold text-gray-800">Item Total</span>
+                <span className="text-xl font-serif font-bold text-[#DAA520]">₹{calculateTotal().toFixed(2)}</span>
+              </div>
             </div>
-          </div>
+          )}
+
+          {!isCustomizable && (
+            <div className="mt-auto pt-6">
+              <div className="flex justify-between items-center mb-6">
+                <span className="font-bold text-gray-800 text-lg">Price</span>
+                <span className="text-2xl font-serif font-bold text-[#DAA520]">₹{item.price.toFixed(2)}</span>
+              </div>
+              <div className="bg-white pt-4 flex items-center gap-4">
+                <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
+                  <button 
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="p-3 hover:bg-gray-100 text-gray-600 transition-colors"
+                  >
+                    <Minus size={20} />
+                  </button>
+                  <span className="w-12 text-center font-bold text-lg">{quantity}</span>
+                  <button 
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="p-3 hover:bg-gray-100 text-gray-600 transition-colors"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+                <button 
+                  onClick={handleAddToCart}
+                  className="flex-1 bg-[#8B4513] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#DAA520] transition-colors shadow-md flex justify-center items-center gap-2"
+                >
+                  Add to Order - ₹{(calculateTotal() * quantity).toFixed(2)}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Side - Options */}
-        <div className="md:w-3/5 p-8 overflow-y-auto bg-white">
-          <h3 className="text-xl font-bold text-[#8B4513] mb-6 border-b-2 border-[#DAA520] inline-block pb-1">Build Your Pizza</h3>
+        {isCustomizable && (
+          <div className="md:w-3/5 p-8 overflow-y-auto bg-white">
+            <h3 className="text-xl font-bold text-[#8B4513] mb-6 border-b-2 border-[#DAA520] inline-block pb-1">Build Your Pizza</h3>
           
           {/* Size */}
           <div className="mb-8">
@@ -109,12 +149,17 @@ const CustomizeModal: React.FC<CustomizeModalProps> = ({ item, isOpen, onClose }
                 <button
                   key={size.id}
                   onClick={() => setSelectedSize(size)}
-                  className={`py-3 px-2 rounded-xl border-2 text-sm font-bold transition-all ${
+                  className={`relative py-3 px-2 rounded-xl border-2 text-sm font-bold transition-all ${
                     selectedSize.id === size.id 
                       ? 'border-[#8B4513] bg-[#F4EBD0] text-[#8B4513]' 
                       : 'border-gray-200 text-gray-600 hover:border-[#DAA520]/50'
                   }`}
                 >
+                  {selectedSize.id === size.id && (
+                    <div className="absolute -top-2 -right-2 bg-[#8B4513] text-white rounded-full p-0.5 shadow-sm">
+                      <Check size={14} strokeWidth={3} />
+                    </div>
+                  )}
                   {size.name}
                 </button>
               ))}
@@ -135,7 +180,12 @@ const CustomizeModal: React.FC<CustomizeModalProps> = ({ item, isOpen, onClose }
                       : 'border-gray-200 text-gray-600 hover:border-[#DAA520]/50'
                   }`}
                 >
-                  <span className="font-bold">{crust.name}</span>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedCrust.id === crust.id ? 'border-[#8B4513] bg-[#8B4513]' : 'border-gray-300'}`}>
+                      {selectedCrust.id === crust.id && <Check size={12} className="text-white" strokeWidth={3} />}
+                    </div>
+                    <span className="font-bold">{crust.name}</span>
+                  </div>
                   <span className="text-sm">{crust.price > 0 ? `+₹${crust.price.toFixed(2)}` : 'Included'}</span>
                 </button>
               ))}
@@ -154,13 +204,13 @@ const CustomizeModal: React.FC<CustomizeModalProps> = ({ item, isOpen, onClose }
                     onClick={() => toggleTopping(topping.id)}
                     className={`flex justify-between items-center p-3 rounded-xl border-2 transition-all ${
                       isSelected 
-                        ? 'border-[#DAA520] bg-[#DAA520]/10 text-[#8B4513]' 
+                        ? 'border-[#8B4513] bg-[#F4EBD0] text-[#8B4513]' 
                         : 'border-gray-200 text-gray-600 hover:border-[#DAA520]/50'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <div className={`w-4 h-4 rounded-sm border flex items-center justify-center ${isSelected ? 'bg-[#DAA520] border-[#DAA520]' : 'border-gray-300'}`}>
-                        {isSelected && <X size={12} className="text-white" />}
+                    <div className="flex items-center gap-3">
+                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center ${isSelected ? 'bg-[#8B4513] border-[#8B4513]' : 'border-gray-300'}`}>
+                        {isSelected && <Check size={14} className="text-white" strokeWidth={3} />}
                       </div>
                       <span className="font-medium text-sm">{topping.name}</span>
                     </div>
@@ -196,6 +246,7 @@ const CustomizeModal: React.FC<CustomizeModalProps> = ({ item, isOpen, onClose }
             </button>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

@@ -28,7 +28,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenLocation }) => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white shadow-sm border-b border-[#DAA520]/20">
+    <header className="relative z-40 bg-white shadow-sm border-b border-[#DAA520]/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo & Mobile Menu */}
@@ -36,14 +36,14 @@ const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenLocation }) => {
             <button className="md:hidden text-gray-600 hover:text-[#8B4513]">
               <MenuIcon size={24} />
             </button>
-            <Link to="/" className="flex flex-col">
+            <a href="/" className="flex flex-col">
               <span className="text-2xl md:text-3xl font-serif font-bold text-[#8B4513] leading-none tracking-tighter">
                 Sanskriti's
               </span>
               <span className="text-[#DAA520] font-bold tracking-widest uppercase text-xs">
                 Pizza
               </span>
-            </Link>
+            </a>
           </div>
 
           {/* Center - Order Type & Location (Domino's Style) */}

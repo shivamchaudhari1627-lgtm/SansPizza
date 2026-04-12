@@ -83,7 +83,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                   </div>
                   
                   <div className="text-xs text-gray-500 mt-1 space-y-0.5">
-                    <p>{item.size} • {item.crust}</p>
+                    {item.size && item.crust && <p>{item.size} • {item.crust}</p>}
                     {item.toppings.length > 0 && (
                       <p className="text-[#DAA520]">+{item.toppings.length} Toppings</p>
                     )}

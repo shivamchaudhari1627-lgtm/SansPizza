@@ -159,7 +159,7 @@ const CustomerHome = () => {
       </div>
 
       {/* Category Tabs (Domino's Style) */}
-      <div id="menu-section" className="bg-white shadow-sm sticky top-20 z-30">
+      <div id="menu-section" className="bg-white shadow-sm sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <div className="flex overflow-x-auto hide-scrollbar py-4 gap-8 flex-grow">
             {menuCategories.map(category => (
