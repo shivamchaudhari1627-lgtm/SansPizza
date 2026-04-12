@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../features/store';
 import { removeFromCart, updateQuantity } from '../features/cartSlice';
 import PaymentModal from './PaymentModal';
+import LoginPromptModal from './LoginPromptModal';
 
 interface CartSidebarProps {
   isOpen: boolean;
@@ -13,12 +14,18 @@ interface CartSidebarProps {
 const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { items, totalAmount, orderType, address } = useSelector((state: RootState) => state.cart);
+  const { user } = useSelector((state: RootState) => state.auth);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isCheckoutLoginPromptOpen, setIsCheckoutLoginPromptOpen] = useState(false);
 
   if (!isOpen) return null;
 
   const handleCheckout = () => {
     if (items.length === 0) return;
+    if (!user) {
+      setIsCheckoutLoginPromptOpen(true);
+      return;
+    }
     setIsPaymentModalOpen(true);
   };
 
@@ -138,6 +145,13 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
           onClose(); // Close cart as well after successful payment
         }} 
         totalAmount={finalTotal} 
+      />
+
+      <LoginPromptModal 
+        isOpen={isCheckoutLoginPromptOpen} 
+        onClose={() => setIsCheckoutLoginPromptOpen(false)} 
+        title="Login Required" 
+        message="You must be logged in to place an order. Please log in or create an account to continue." 
       />
     </>
   );

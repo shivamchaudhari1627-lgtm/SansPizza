@@ -2,6 +2,7 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
+import Razorpay from "razorpay";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,6 +12,28 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json());
+
+  // Initialize Razorpay
+  let razorpay: Razorpay | null = null;
+  
+  const getRazorpay = () => {
+    if (!razorpay) {
+      const key_id = process.env.RAZORPAY_KEY_ID;
+      const key_secret = process.env.RAZORPAY_KEY_SECRET;
+      
+      if (!key_id || !key_secret) {
+        console.warn("Razorpay keys not found. Using test mode keys for demo purposes.");
+        // Fallback to dummy keys if not provided to prevent crash, but warn user
+        razorpay = new Razorpay({
+          key_id: key_id || "rzp_test_dummy_key_id",
+          key_secret: key_secret || "dummy_secret"
+        });
+      } else {
+        razorpay = new Razorpay({ key_id, key_secret });
+      }
+    }
+    return razorpay;
+  };
 
   // Mock Database
   const menu = [
@@ -71,6 +94,30 @@ async function startServer() {
       res.json(order);
     } else {
       res.status(404).json({ error: "Order not found" });
+    }
+  });
+
+  app.post("/api/create-razorpay-order", async (req, res) => {
+    try {
+      const { amount, currency = "INR" } = req.body;
+      const rzp = getRazorpay();
+      
+      const options = {
+        amount: Math.round(amount * 100), // amount in the smallest currency unit (paise)
+        currency,
+        receipt: `receipt_${Date.now()}`
+      };
+      
+      const order = await rzp.orders.create(options);
+      res.json({
+        id: order.id,
+        currency: order.currency,
+        amount: order.amount,
+        key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_dummy_key_id"
+      });
+    } catch (error) {
+      console.error("Error creating Razorpay order:", error);
+      res.status(500).json({ error: "Failed to create Razorpay order" });
     }
   });
 

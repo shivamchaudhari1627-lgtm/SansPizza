@@ -16,9 +16,6 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [statusText, setStatusText] = useState('');
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const roleParam = searchParams.get('role') || 'customer';
-  const isAdminLogin = roleParam === 'admin';
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
@@ -54,14 +51,6 @@ const Login: React.FC = () => {
           finalRole = 'customer';
           await setDoc(doc(db, 'users', user.uid), { role: 'customer' }, { merge: true });
         }
-      }
-
-      if (isAdminLogin && finalRole !== 'admin') {
-        setError("Access Denied: Only shivamchaudhari1627@gmail.com can access the admin portal.");
-        await auth.signOut();
-        setIsLoading(false);
-        setStatusText('');
-        return;
       }
 
       if (finalRole === 'admin') {
@@ -159,14 +148,6 @@ const Login: React.FC = () => {
         }
       }
 
-      if (isAdminLogin && finalRole !== 'admin') {
-        setError("Access Denied: Only shivamchaudhari1627@gmail.com can access the admin portal.");
-        await auth.signOut();
-        setIsLoading(false);
-        setStatusText('');
-        return;
-      }
-
       if (finalRole === 'admin') {
         navigate('/admin');
         return;
@@ -249,10 +230,10 @@ const Login: React.FC = () => {
             <Pizza size={32} className="text-[#8B4513]" />
           </motion.div>
           <h1 className="text-3xl font-serif font-bold text-[#8B4513] mb-2 tracking-tight">
-            {isAdminLogin ? "Admin Portal" : "Sanskriti's Pizza"}
+            Sanskriti's Pizza
           </h1>
           <p className="text-gray-500 font-medium text-sm">
-            {isSignUp ? 'Create your account' : (isAdminLogin ? 'Sign in to manage orders' : 'Welcome back')}
+            {isSignUp ? 'Create your account' : 'Welcome back'}
           </p>
         </div>
 
@@ -321,7 +302,7 @@ const Login: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full flex items-center justify-center gap-2 text-white p-4 rounded-xl font-bold transition-all shadow-md disabled:opacity-70 mt-6 ${isAdminLogin ? 'bg-[#8B4513] hover:bg-[#6b3410]' : 'bg-[#DAA520] hover:bg-[#8B4513]'}`}
+            className={`w-full flex items-center justify-center gap-2 text-white p-4 rounded-xl font-bold transition-all shadow-md disabled:opacity-70 mt-6 bg-[#DAA520] hover:bg-[#8B4513]`}
           >
             {isLoading ? (
               <>

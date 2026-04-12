@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, CreditCard, QrCode, Banknote, CheckCircle, LogIn } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, CreditCard, Banknote, CheckCircle, Smartphone, QrCode, LogIn } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearCart } from '../features/cartSlice';
 import { QRCodeSVG } from 'qrcode.react';
@@ -13,42 +13,127 @@ interface PaymentModalProps {
   totalAmount: number;
 }
 
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmount }) => {
   const [step, setStep] = useState<'select' | 'details' | 'success'>('select');
-  const [paymentMethod, setPaymentMethod] = useState<'qr' | 'upi' | 'card' | 'cod' | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'cod' | 'upi' | 'qr' | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const dispatch = useDispatch();
   
   const { items, orderType, address } = useSelector((state: RootState) => state.cart);
   const { user } = useSelector((state: RootState) => state.auth);
 
+  useEffect(() => {
+    if (isOpen) {
+      loadRazorpayScript();
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
+  const saveOrderToFirestore = async (method: string, paymentId?: string) => {
+    const orderData = {
+      userId: user?.uid || 'guest',
+      customerName: user?.displayName || 'Guest',
+      customerEmail: user?.email || 'N/A',
+      items: items,
+      totalAmount: totalAmount,
+      orderType: orderType,
+      address: address || 'N/A',
+      paymentMethod: method,
+      paymentId: paymentId || null,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+
+    await addDoc(collection(db, 'orders'), orderData);
+  };
+
+  const handleRazorpayPayment = async () => {
+    setIsProcessing(true);
+    try {
+      const res = await fetch('/api/create-razorpay-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: totalAmount })
+      });
+      
+      const data = await res.json();
+      
+      if (!data.id) {
+        throw new Error('Failed to create Razorpay order');
+      }
+
+      const options = {
+        key: data.key_id,
+        amount: data.amount,
+        currency: data.currency,
+        name: "Sanskriti's Pizza",
+        description: "Pizza Order Payment",
+        order_id: data.id,
+        handler: async function (response: any) {
+          try {
+            await saveOrderToFirestore('razorpay', response.razorpay_payment_id);
+            setIsProcessing(false);
+            setStep('success');
+            setTimeout(() => {
+              dispatch(clearCart());
+              setStep('select');
+              setPaymentMethod(null);
+              onClose();
+            }, 2500);
+          } catch (err) {
+            console.error("Error saving order:", err);
+            alert("Payment successful, but failed to save order. Please contact support.");
+          }
+        },
+        prefill: {
+          name: user?.displayName || '',
+          email: user?.email || '',
+        },
+        theme: {
+          color: "#8B4513"
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (response: any) {
+        console.error("Payment failed:", response.error);
+        alert("Payment failed. Please try again.");
+        setIsProcessing(false);
+      });
+      rzp.open();
+    } catch (error) {
+      console.error("Razorpay Error:", error);
+      setIsProcessing(false);
+      alert("Failed to initialize payment. Please try again.");
+    }
+  };
+
   const handlePayment = async () => {
+    if (paymentMethod === 'razorpay') {
+      await handleRazorpayPayment();
+      return;
+    }
+
     if (paymentMethod === 'qr' || paymentMethod === 'upi') {
       const upiUrl = `upi://pay?pa=8963938656@ibl&pn=SANSKRITI%20DIXIT&mc=0000&mode=02&purpose=00&am=${totalAmount.toFixed(2)}&cu=INR`;
       window.location.href = upiUrl;
     }
 
+    // COD, QR, UPI Flow
     setIsProcessing(true);
-    
     try {
-      // Save order to Firestore
-      const orderData = {
-        userId: user?.uid || 'guest',
-        customerName: user?.displayName || 'Guest',
-        customerEmail: user?.email || 'N/A',
-        items: items,
-        totalAmount: totalAmount,
-        orderType: orderType,
-        address: address || 'N/A',
-        paymentMethod: paymentMethod,
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      };
-
-      await addDoc(collection(db, 'orders'), orderData);
-
+      await saveOrderToFirestore(paymentMethod as string);
       setIsProcessing(false);
       setStep('success');
       setTimeout(() => {
@@ -64,7 +149,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
     }
   };
 
-  const handleSelectMethod = (method: 'qr' | 'upi' | 'card' | 'cod') => {
+  const handleSelectMethod = (method: 'razorpay' | 'cod' | 'upi' | 'qr') => {
     setPaymentMethod(method);
     setStep('details');
   };
@@ -82,6 +167,19 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
             <p className="font-bold text-gray-800 text-sm mb-2">Choose Payment Method</p>
             
             <div className="grid gap-3">
+              <button 
+                onClick={() => handleSelectMethod('razorpay')}
+                className="flex items-center p-4 border-2 border-gray-100 rounded-2xl hover:border-[#DAA520] hover:bg-[#F4EBD0]/20 transition-all text-left group"
+              >
+                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
+                  <Smartphone size={24} />
+                </div>
+                <div className="ml-4">
+                  <p className="font-bold text-gray-800">Pay Online (Razorpay)</p>
+                  <p className="text-xs text-gray-500">UPI, Cards, Netbanking, Wallets</p>
+                </div>
+              </button>
+
               <button 
                 onClick={() => handleSelectMethod('qr')}
                 className="flex items-center p-4 border-2 border-gray-100 rounded-2xl hover:border-[#DAA520] hover:bg-[#F4EBD0]/20 transition-all text-left group"
@@ -105,19 +203,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
                 <div className="ml-4">
                   <p className="font-bold text-gray-800">UPI ID / VPA</p>
                   <p className="text-xs text-gray-500">Pay using your UPI ID</p>
-                </div>
-              </button>
-
-              <button 
-                onClick={() => handleSelectMethod('card')}
-                className="flex items-center p-4 border-2 border-gray-100 rounded-2xl hover:border-[#DAA520] hover:bg-[#F4EBD0]/20 transition-all text-left group"
-              >
-                <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600 group-hover:bg-orange-100 transition-colors">
-                  <CreditCard size={24} />
-                </div>
-                <div className="ml-4">
-                  <p className="font-bold text-gray-800">Card Payment</p>
-                  <p className="text-xs text-gray-500">Visa, Mastercard, RuPay</p>
                 </div>
               </button>
 
@@ -148,6 +233,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
             </button>
 
             <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-6">
+              {paymentMethod === 'razorpay' && (
+                <div className="text-center py-8">
+                  <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mx-auto mb-4">
+                    <CreditCard size={40} />
+                  </div>
+                  <p className="font-bold text-gray-800">Secure Online Payment</p>
+                  <p className="text-sm text-gray-500 mt-2 px-4">You will be redirected to Razorpay to complete your payment securely via UPI, Card, or Netbanking.</p>
+                </div>
+              )}
+
               {paymentMethod === 'qr' && (
                 <div className="text-center">
                   <div className="bg-white p-4 rounded-2xl shadow-sm inline-block mb-4 border border-gray-100">
@@ -174,17 +269,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
                     placeholder="e.g., mobile-number@upi" 
                     className="w-full p-4 border-2 border-gray-200 rounded-xl text-lg focus:outline-none focus:border-[#DAA520] text-center font-medium" 
                   />
-                </div>
-              )}
-
-              {paymentMethod === 'card' && (
-                <div className="space-y-4">
-                  <input type="text" placeholder="Card Number" className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#DAA520]" />
-                  <div className="flex gap-4">
-                    <input type="text" placeholder="MM/YY" className="w-1/2 p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#DAA520]" />
-                    <input type="password" placeholder="CVV" className="w-1/2 p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#DAA520]" />
-                  </div>
-                  <input type="text" placeholder="Cardholder Name" className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#DAA520]" />
                 </div>
               )}
 

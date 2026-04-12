@@ -4,6 +4,7 @@ import LocationModal from '../../components/LocationModal';
 import CustomizeModal from '../../components/CustomizeModal';
 import CartSidebar from '../../components/CartSidebar';
 import Pizza3D from '../../components/Pizza3D';
+import LoginPromptModal from '../../components/LoginPromptModal';
 import { menuItems, menuCategories, MenuItem } from '../../data/menu';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../features/store';
@@ -16,6 +17,7 @@ const CustomerHome = () => {
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isInitialLoginPromptOpen, setIsInitialLoginPromptOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const { orderType } = useSelector((state: RootState) => state.cart);
   const { user } = useSelector((state: RootState) => state.auth);
@@ -31,6 +33,18 @@ const CustomerHome = () => {
       setIsLocationModalOpen(true);
     }
   }, [orderType]);
+
+  // Show initial login prompt if not logged in
+  useEffect(() => {
+    const hasSeenPrompt = sessionStorage.getItem('hasSeenLoginPrompt');
+    if (!user && !hasSeenPrompt) {
+      const timer = setTimeout(() => {
+        setIsInitialLoginPromptOpen(true);
+        sessionStorage.setItem('hasSeenLoginPrompt', 'true');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [user]);
 
   const handleCustomize = (item: MenuItem) => {
     setSelectedItem(item);
@@ -110,26 +124,15 @@ const CustomerHome = () => {
               </motion.button>
               
               {!user && (
-                <>
-                  <Link to="/login?role=customer">
-                    <motion.button 
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="bg-white text-[#8B4513] px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all shadow-xl border-2 border-white"
-                    >
-                      Customer Login
-                    </motion.button>
-                  </Link>
-                  <Link to="/login?role=admin">
-                    <motion.button 
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="bg-transparent text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/10 transition-all shadow-xl border-2 border-white/50"
-                    >
-                      Admin Login
-                    </motion.button>
-                  </Link>
-                </>
+                <Link to="/login">
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-white text-[#8B4513] px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all shadow-xl border-2 border-white"
+                  >
+                    Login
+                  </motion.button>
+                </Link>
               )}
             </div>
           </motion.div>
@@ -277,6 +280,13 @@ const CustomerHome = () => {
       <CartSidebar 
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
+      />
+
+      <LoginPromptModal 
+        isOpen={isInitialLoginPromptOpen} 
+        onClose={() => setIsInitialLoginPromptOpen(false)} 
+        title="Welcome to Sanskriti's Pizza!" 
+        message="Log in to save your favorite orders and earn rewards. You can also log in later before checkout." 
       />
     </div>
   );
