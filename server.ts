@@ -3,6 +3,7 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
 import Razorpay from "razorpay";
+import nodemailer from "nodemailer";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -118,6 +119,40 @@ async function startServer() {
     } catch (error) {
       console.error("Error creating Razorpay order:", error);
       res.status(500).json({ error: "Failed to create Razorpay order" });
+    }
+  });
+
+  app.post("/api/send-email", async (req, res) => {
+    try {
+      const { to, subject, text } = req.body;
+
+      if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        return res.status(500).json({ error: "Email credentials not configured on the server. Please set EMAIL_USER and EMAIL_PASS in your environment variables." });
+      }
+
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+
+      await transporter.sendMail({
+        from: `"Sanskriti's Pizza" <${process.env.EMAIL_USER}>`,
+        to,
+        subject,
+        text,
+      });
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      if (error.message && error.message.includes('Invalid login')) {
+        res.status(500).json({ error: "Authentication failed. Please ensure you are using a Google App Password (16 characters) in the EMAIL_PASS environment variable, NOT your regular Gmail password." });
+      } else {
+        res.status(500).json({ error: "Failed to send email. Please check server logs." });
+      }
     }
   });
 

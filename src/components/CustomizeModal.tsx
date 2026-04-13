@@ -98,7 +98,7 @@ const CustomizeModal: React.FC<CustomizeModalProps> = ({ item, isOpen, onClose }
               </ul>
               <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                 <span className="font-bold text-gray-800">Item Total</span>
-                <span className="text-xl font-serif font-bold text-[#DAA520]">₹{calculateTotal().toFixed(2)}</span>
+                <span className="text-xl font-serif font-bold text-[#DAA520]">₹{calculateTotal()}</span>
               </div>
             </div>
           )}
@@ -107,7 +107,7 @@ const CustomizeModal: React.FC<CustomizeModalProps> = ({ item, isOpen, onClose }
             <div className="mt-auto pt-6">
               <div className="flex justify-between items-center mb-6">
                 <span className="font-bold text-gray-800 text-lg">Price</span>
-                <span className="text-2xl font-serif font-bold text-[#DAA520]">₹{item.price.toFixed(2)}</span>
+                <span className="text-2xl font-serif font-bold text-[#DAA520]">₹{item.price}</span>
               </div>
               <div className="bg-white pt-4 flex items-center gap-4">
                 <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
@@ -129,7 +129,7 @@ const CustomizeModal: React.FC<CustomizeModalProps> = ({ item, isOpen, onClose }
                   onClick={handleAddToCart}
                   className="flex-1 bg-[#8B4513] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#DAA520] transition-colors shadow-md flex justify-center items-center gap-2"
                 >
-                  Add to Order - ₹{(calculateTotal() * quantity).toFixed(2)}
+                  Add to Order - ₹{calculateTotal() * quantity}
                 </button>
               </div>
             </div>
@@ -186,7 +186,7 @@ const CustomizeModal: React.FC<CustomizeModalProps> = ({ item, isOpen, onClose }
                     </div>
                     <span className="font-bold">{crust.name}</span>
                   </div>
-                  <span className="text-sm">{crust.price > 0 ? `+₹${crust.price.toFixed(2)}` : 'Included'}</span>
+                  <span className="text-sm">{crust.price > 0 ? `+₹${crust.price}` : 'Included'}</span>
                 </button>
               ))}
             </div>
@@ -214,7 +214,7 @@ const CustomizeModal: React.FC<CustomizeModalProps> = ({ item, isOpen, onClose }
                       </div>
                       <span className="font-medium text-sm">{topping.name}</span>
                     </div>
-                    <span className="text-xs font-bold text-gray-500">+₹{topping.price.toFixed(2)}</span>
+                    <span className="text-xs font-bold text-gray-500">+₹{topping.price}</span>
                   </button>
                 );
               })}
@@ -242,7 +242,7 @@ const CustomizeModal: React.FC<CustomizeModalProps> = ({ item, isOpen, onClose }
               onClick={handleAddToCart}
               className="flex-1 bg-[#8B4513] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#DAA520] transition-colors shadow-md flex justify-center items-center gap-2"
             >
-              Add to Order - ₹{(calculateTotal() * quantity).toFixed(2)}
+              Add to Order - ₹{calculateTotal() * quantity}
             </button>
           </div>
         </div>

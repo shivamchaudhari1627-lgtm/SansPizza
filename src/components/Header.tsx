@@ -113,7 +113,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenLocation }) => {
               </div>
               <div className="hidden md:flex flex-col text-left">
                 <span className="text-[10px] font-bold text-gray-500 uppercase leading-none">Total</span>
-                <span className="text-sm font-bold text-[#8B4513] leading-none mt-1">₹{totalAmount.toFixed(2)}</span>
+                <span className="text-sm font-bold text-[#8B4513] leading-none mt-1">₹{totalAmount}</span>
               </div>
             </button>
           </div>

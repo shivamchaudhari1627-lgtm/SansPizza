@@ -24,13 +24,15 @@ interface Order {
   orderType: string;
   address: string;
   paymentMethod: string;
-  status: 'pending' | 'preparing' | 'out_for_delivery' | 'delivered' | 'cancelled';
+  status: 'pending' | 'preparing' | 'out_for_delivery' | 'delivered' | 'out_of_stock' | 'cancelled';
   createdAt: string;
 }
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
@@ -66,6 +68,7 @@ const AdminDashboard = () => {
       case 'preparing': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'out_for_delivery': return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'delivered': return 'bg-green-100 text-green-800 border-green-200';
+      case 'out_of_stock': return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -143,6 +146,68 @@ const AdminDashboard = () => {
                   </div>
 
                   <div className="flex items-center gap-3 w-full md:w-auto">
+                    <button
+                      disabled={sendingEmail === order.id}
+                      onClick={async () => {
+                        setSendingEmail(order.id);
+                        try {
+                          const subject = `Order Update from Sanskriti's Pizza (Order #${order.id.slice(-6).toUpperCase()})`;
+                          let statusMessage = '';
+                          switch (order.status) {
+                            case 'pending':
+                              statusMessage = 'Your order has been received and is currently pending confirmation.';
+                              break;
+                            case 'preparing':
+                              statusMessage = 'Great news! We are currently preparing your delicious order.';
+                              break;
+                            case 'out_for_delivery':
+                              statusMessage = 'Your order is out for delivery and will be arriving shortly!';
+                              break;
+                            case 'delivered':
+                              statusMessage = 'Your order has been delivered. Enjoy your meal!';
+                              break;
+                            case 'cancelled':
+                              statusMessage = 'Your order has been cancelled. If you have any questions, please reply to this email.';
+                              break;
+                            case 'out_of_stock':
+                              statusMessage = 'Unfortunately, some items in your order are currently out of stock. Your order has been cancelled and any payment will be refunded.';
+                              break;
+                            default:
+                              statusMessage = `Your order status is now: ${order.status.replace('_', ' ').toUpperCase()}`;
+                          }
+                          const text = `Hi ${order.customerName},\n\n${statusMessage}\n\nOrder Details:\nOrder ID: #${order.id.slice(-6).toUpperCase()}\nTotal Amount: ₹${Math.round(order.totalAmount)}\nOrder Type: ${order.orderType}\n\nThank you for choosing Sanskriti's Pizza!\n\nBest regards,\nThe Sanskriti's Pizza Team`;
+                          
+                          const response = await fetch('/api/send-email', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              to: order.customerEmail,
+                              subject,
+                              text
+                            })
+                          });
+                          
+                          if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || 'Failed to send email');
+                          }
+                          
+                          alert('Email sent successfully!');
+                        } catch (error) {
+                          console.error('Error sending email:', error);
+                          alert(error instanceof Error ? error.message : 'Failed to send email. Ensure EMAIL_USER and EMAIL_PASS are set on the server.');
+                        } finally {
+                          setSendingEmail(null);
+                        }
+                      }}
+                      className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 ${
+                        sendingEmail === order.id 
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                          : 'bg-[#8B4513] text-white hover:bg-[#DAA520]'
+                      }`}
+                    >
+                      {sendingEmail === order.id ? 'Sending...' : 'Send Message'}
+                    </button>
                     <select
                       value={order.status}
                       onChange={(e) => handleStatusChange(order.id, e.target.value)}
@@ -152,6 +217,7 @@ const AdminDashboard = () => {
                       <option value="preparing">Preparing</option>
                       <option value="out_for_delivery">Out for Delivery</option>
                       <option value="delivered">Delivered</option>
+                      <option value="out_of_stock">Out of Stock</option>
                       <option value="cancelled">Cancelled</option>
                     </select>
                   </div>

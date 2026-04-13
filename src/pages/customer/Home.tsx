@@ -249,7 +249,7 @@ const CustomerHome = () => {
                   <p className="text-sm text-gray-600 mb-6 flex-grow leading-relaxed">{item.description}</p>
                   
                   <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
-                    <span className="text-2xl font-black text-[#8B4513]">₹{item.price.toFixed(2)}</span>
+                    <span className="text-2xl font-black text-[#8B4513]">₹{item.price}</span>
                     <motion.button 
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
