@@ -49,6 +49,19 @@
         "createdAt": { "type": "string", "description": "ISO timestamp of order creation." }
       },
       "required": ["userId", "customerName", "items", "totalAmount", "orderType", "status", "createdAt"]
+    },
+    "Rating": {
+      "title": "Rating",
+      "description": "Represents a customer rating/review.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "ID of the user who gave the rating." },
+        "userName": { "type": "string", "description": "Name of the user." },
+        "rating": { "type": "number", "description": "Rating score (1-5)." },
+        "comment": { "type": "string", "description": "Optional comment." },
+        "createdAt": { "type": "string", "description": "ISO timestamp of rating creation." }
+      },
+      "required": ["userId", "userName", "rating", "createdAt"]
     }
   },
   "firestore": {
@@ -59,6 +72,10 @@
     "/orders/{orderId}": {
       "schema": { "$ref": "#/entities/Order" },
       "description": "Stores pizza orders."
+    },
+    "/ratings/{ratingId}": {
+      "schema": { "$ref": "#/entities/Rating" },
+      "description": "Stores customer ratings."
     }
   }
 }

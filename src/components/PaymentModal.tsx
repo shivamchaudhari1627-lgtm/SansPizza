@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CreditCard, Banknote, CheckCircle, Smartphone, QrCode, LogIn } from 'lucide-react';
+import { X, CreditCard, Banknote, CheckCircle, Smartphone, QrCode, LogIn, Star } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearCart } from '../features/cartSlice';
 import { QRCodeSVG } from 'qrcode.react';
@@ -24,9 +24,12 @@ const loadRazorpayScript = () => {
 };
 
 const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmount }) => {
-  const [step, setStep] = useState<'select' | 'details' | 'success'>('select');
+  const [step, setStep] = useState<'select' | 'details' | 'success' | 'rating'>('select');
   const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'cod' | 'upi' | 'qr' | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
   const dispatch = useDispatch();
   
   const { items, orderType, address } = useSelector((state: RootState) => state.cart);
@@ -58,6 +61,29 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
     await addDoc(collection(db, 'orders'), orderData);
   };
 
+  const submitRating = async () => {
+    if (rating === 0) return;
+    setIsSubmittingRating(true);
+    try {
+      await addDoc(collection(db, 'ratings'), {
+        userId: user?.uid || 'anonymous',
+        userName: user?.displayName || 'Anonymous',
+        rating,
+        comment,
+        createdAt: new Date().toISOString()
+      });
+      onClose();
+      // Reset for next time
+      setStep('select');
+      setRating(0);
+      setComment('');
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+    } finally {
+      setIsSubmittingRating(false);
+    }
+  };
+
   const handleRazorpayPayment = async () => {
     setIsProcessing(true);
     try {
@@ -87,10 +113,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
             setStep('success');
             setTimeout(() => {
               dispatch(clearCart());
-              setStep('select');
-              setPaymentMethod(null);
-              onClose();
-            }, 2500);
+            }, 1000);
           } catch (err) {
             console.error("Error saving order:", err);
             alert("Payment successful, but failed to save order. Please contact support.");
@@ -126,7 +149,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
     }
 
     if (paymentMethod === 'qr' || paymentMethod === 'upi') {
-      const upiUrl = `upi://pay?pa=8963938656@ibl&pn=SANSKRITI%20DIXIT&mc=0000&mode=02&purpose=00&am=${totalAmount.toFixed(2)}&cu=INR`;
+      const upiUrl = `upi://pay?pa=8963938656@ibl&pn=SANSKRITI%20DIXIT&mc=0000&mode=02&purpose=00&am=${Math.round(totalAmount)}&cu=INR`;
       window.location.href = upiUrl;
     }
 
@@ -138,10 +161,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
       setStep('success');
       setTimeout(() => {
         dispatch(clearCart());
-        setStep('select');
-        setPaymentMethod(null);
-        onClose();
-      }, 2500);
+      }, 1000);
     } catch (error) {
       console.error("Error saving order:", error);
       setIsProcessing(false);
@@ -247,14 +267,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
                 <div className="text-center">
                   <div className="bg-white p-4 rounded-2xl shadow-sm inline-block mb-4 border border-gray-100">
                     <QRCodeSVG 
-                      value={`upi://pay?pa=8963938656@ibl&pn=SANSKRITI%20DIXIT&mc=0000&mode=02&purpose=00&am=${totalAmount.toFixed(2)}&cu=INR`}
+                      value={`upi://pay?pa=8963938656@ibl&pn=SANSKRITI%20DIXIT&mc=0000&mode=02&purpose=00&am=${Math.round(totalAmount)}&cu=INR`}
                       size={200}
                       level="H"
                       includeMargin={true}
                     />
                   </div>
                   <p className="text-sm font-bold text-gray-700">Scan & Pay with any UPI App</p>
-                  <p className="text-xs text-gray-500 mt-1">Amount: ₹{totalAmount.toFixed(2)}</p>
+                  <p className="text-xs text-gray-500 mt-1">Amount: ₹{Math.round(totalAmount)}</p>
                 </div>
               )}
 
@@ -295,7 +315,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
                 </div>
               ) : (
                 paymentMethod === 'cod' ? 'Confirm Order' : 
-                (paymentMethod === 'qr' || paymentMethod === 'upi') ? 'Pay via UPI App' : `Pay ₹${totalAmount.toFixed(2)}`
+                (paymentMethod === 'qr' || paymentMethod === 'upi') ? 'Pay via UPI App' : `Pay ₹${Math.round(totalAmount)}`
               )}
             </button>
             {(paymentMethod === 'qr' || paymentMethod === 'upi') && (
@@ -316,10 +336,62 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
             <p className="text-gray-600 mb-8 leading-relaxed">
               Your payment was successful and your delicious pizza is being prepared.
             </p>
-            <div className="w-full bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300">
+            <div className="w-full bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300 mb-8">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Order Status</p>
               <p className="text-[#DAA520] font-bold mt-1">Preparing your meal...</p>
             </div>
+            <button
+              onClick={() => setStep('rating')}
+              className="w-full bg-[#DAA520] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#8B4513] transition-all shadow-lg"
+            >
+              Rate Your Experience
+            </button>
+            <button
+              onClick={onClose}
+              className="mt-4 text-gray-500 font-bold hover:text-[#8B4513]"
+            >
+              Skip for now
+            </button>
+          </div>
+        );
+
+      case 'rating':
+        return (
+          <div className="p-8 text-center bg-white">
+            <h3 className="text-2xl font-serif font-bold text-[#4A2C2A] mb-2">Rate Your Experience</h3>
+            <p className="text-sm text-gray-500 mb-8">How was your ordering experience today?</p>
+            
+            <div className="flex justify-center gap-2 mb-8">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setRating(star)}
+                  className="transition-transform hover:scale-110"
+                >
+                  <Star
+                    size={40}
+                    className={`${
+                      star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'
+                    } transition-colors`}
+                  />
+                </button>
+              ))}
+            </div>
+
+            <textarea
+              placeholder="Tell us more (optional)..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="w-full p-4 border-2 border-gray-100 rounded-2xl mb-8 focus:outline-none focus:border-[#DAA520] min-h-[100px] resize-none text-sm"
+            />
+
+            <button
+              onClick={submitRating}
+              disabled={rating === 0 || isSubmittingRating}
+              className="w-full bg-[#8B4513] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#DAA520] transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmittingRating ? 'Submitting...' : 'Submit Rating'}
+            </button>
           </div>
         );
     }
@@ -330,9 +402,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, totalAmoun
       <div className="bg-[#FCF9F2] w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
         <div className="p-6 border-b border-[#DAA520]/10 flex justify-between items-center bg-white">
           <h2 className="text-2xl font-serif font-bold text-[#8B4513]">
-            {step === 'select' ? 'Payment' : step === 'details' ? 'Payment Details' : 'Success'}
+            {step === 'select' ? 'Payment' : step === 'details' ? 'Payment Details' : step === 'success' ? 'Success' : 'Rate Us'}
           </h2>
-          {step !== 'success' && (
+          {step !== 'success' && step !== 'rating' && (
             <button onClick={onClose} className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all">
               <X size={20} />
             </button>

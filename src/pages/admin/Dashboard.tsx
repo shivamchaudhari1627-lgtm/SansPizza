@@ -173,7 +173,7 @@ const AdminDashboard = () => {
                               statusMessage = 'Unfortunately, some items in your order are currently out of stock. Your order has been cancelled and any payment will be refunded.';
                               break;
                             default:
-                              statusMessage = `Your order status is now: ${order.status.replace('_', ' ').toUpperCase()}`;
+                              statusMessage = `Your order status is now: ${(order.status as string).replace('_', ' ').toUpperCase()}`;
                           }
                           const text = `Hi ${order.customerName},\n\n${statusMessage}\n\nOrder Details:\nOrder ID: #${order.id.slice(-6).toUpperCase()}\nTotal Amount: ₹${Math.round(order.totalAmount)}\nOrder Type: ${order.orderType}\n\nThank you for choosing Sanskriti's Pizza!\n\nBest regards,\nThe Sanskriti's Pizza Team`;
                           
@@ -238,13 +238,13 @@ const AdminDashboard = () => {
                               {item.size && item.crust && <p className="text-xs text-gray-500">{item.size} • {item.crust}</p>}
                             </div>
                           </div>
-                          <p className="font-bold text-gray-800">₹{(item.price * item.quantity).toFixed(2)}</p>
+                          <p className="font-bold text-gray-800">₹{Math.round(item.price * item.quantity)}</p>
                         </div>
                       ))}
                     </div>
                     <div className="mt-6 pt-4 border-t border-gray-100 flex justify-between items-center">
                       <span className="font-bold text-gray-600">Total Amount</span>
-                      <span className="text-xl font-bold text-[#8B4513]">₹{order.totalAmount.toFixed(2)}</span>
+                      <span className="text-xl font-bold text-[#8B4513]">₹{Math.round(order.totalAmount)}</span>
                     </div>
                   </div>
 
