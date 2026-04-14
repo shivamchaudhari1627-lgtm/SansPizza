@@ -130,7 +130,7 @@ const CustomerHome = () => {
                     whileTap={{ scale: 0.95 }}
                     className="bg-white text-[#8B4513] px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all shadow-xl border-2 border-white"
                   >
-                    Login
+                    Sign Up
                   </motion.button>
                 </Link>
               )}
@@ -286,7 +286,7 @@ const CustomerHome = () => {
         isOpen={isInitialLoginPromptOpen} 
         onClose={() => setIsInitialLoginPromptOpen(false)} 
         title="Welcome to Sanskriti's Pizza!" 
-        message="Log in to save your favorite orders and earn rewards. You can also log in later before checkout." 
+        message="Sign up to save your favorite orders and earn rewards. You can also sign up later before checkout." 
       />
     </div>
   );

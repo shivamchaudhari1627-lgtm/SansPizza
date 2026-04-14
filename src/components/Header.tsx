@@ -95,7 +95,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenLocation }) => {
             ) : (
               <Link to="/login" className="hidden md:flex flex-col items-center text-gray-600 hover:text-[#8B4513] transition-colors">
                 <User size={20} />
-                <span className="text-xs font-bold mt-1">Sign In</span>
+                <span className="text-xs font-bold mt-1">Sign Up</span>
               </Link>
             )}
             

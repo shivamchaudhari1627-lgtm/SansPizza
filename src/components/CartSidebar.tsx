@@ -150,8 +150,8 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
       <LoginPromptModal 
         isOpen={isCheckoutLoginPromptOpen} 
         onClose={() => setIsCheckoutLoginPromptOpen(false)} 
-        title="Login Required" 
-        message="You must be logged in to place an order. Please log in or create an account to continue." 
+        title="Sign Up Required" 
+        message="You must have an account to place an order. Please sign up or log in to continue." 
       />
     </>
   );

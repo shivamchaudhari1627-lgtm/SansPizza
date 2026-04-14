@@ -37,6 +37,7 @@ const AppContent = () => {
           dispatch(setUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email,
+            phoneNumber: firebaseUser.phoneNumber,
             displayName: firebaseUser.displayName,
             photoURL: firebaseUser.photoURL,
             role: role
@@ -46,6 +47,7 @@ const AppContent = () => {
           dispatch(setUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email,
+            phoneNumber: firebaseUser.phoneNumber,
             displayName: firebaseUser.displayName,
             photoURL: firebaseUser.photoURL,
             role: 'customer' // Default fallback

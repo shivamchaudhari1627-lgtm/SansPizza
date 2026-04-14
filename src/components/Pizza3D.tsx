@@ -206,7 +206,7 @@ const PizzaSlice = ({
           <Topping
             key={i}
             type={t.type}
-            position={[Math.cos(t.a) * t.r, 0.24, Math.sin(t.a) * t.r]}
+            position={[Math.sin(t.a) * t.r, 0.24, Math.cos(t.a) * t.r]}
             rotation={t.rotation}
           />
         ))}
@@ -283,7 +283,7 @@ const Pizza3D = () => {
       </div>
 
       <Canvas 
-        shadows
+        shadows={{ type: THREE.PCFShadowMap }}
         dpr={[1, 2]} // Cap DPR for mobile performance
         camera={{ position: [0, 8, 12], fov: 30 }}
         style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}

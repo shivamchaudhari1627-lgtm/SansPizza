@@ -1,48 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { auth, db } from '../../firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Pizza, ShieldCheck } from 'lucide-react';
+import { Pizza, ShieldCheck, Phone, Mail } from 'lucide-react';
 
 const Login: React.FC = () => {
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(true);
+  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otp, setOtp] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [statusText, setStatusText] = useState('');
   const navigate = useNavigate();
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    setError(null);
-    setStatusText('Signing in with Google...');
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      
-      const ADMIN_EMAIL = 'shivamchaudhari1627@gmail.com';
-      let finalRole = user.email === ADMIN_EMAIL ? 'admin' : 'customer';
-      
-      // Check if user exists in Firestore
+  useEffect(() => {
+    if (authMethod === 'phone' && !(window as any).recaptchaVerifier) {
+      (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible',
+      });
+    }
+  }, [authMethod]);
+
+  const handleUserPostAuth = async (user: any, isNewUser: boolean = false) => {
+    const ADMIN_EMAIL = 'shivamchaudhari1627@gmail.com';
+    let finalRole = 'customer';
+
+    if (isNewUser) {
+      finalRole = user.email === ADMIN_EMAIL ? 'admin' : 'customer';
+      const userData: any = {
+        uid: user.uid,
+        email: user.email || '',
+        phoneNumber: user.phoneNumber || '',
+        displayName: name || user.displayName || 'User',
+        role: finalRole,
+        createdAt: new Date().toISOString()
+      };
+      if (age) userData.age = parseInt(age);
+      await setDoc(doc(db, 'users', user.uid), userData);
+    } else {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
-      if (!userDoc.exists()) {
-        // New user from Google, save them
-        const userData: any = {
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName || 'Google User',
-          photoURL: user.photoURL,
-          role: finalRole,
-          createdAt: new Date().toISOString()
-        };
-        await setDoc(doc(db, 'users', user.uid), userData);
-      } else {
+      if (userDoc.exists()) {
         finalRole = userDoc.data().role;
         if (user.email === ADMIN_EMAIL && finalRole !== 'admin') {
           finalRole = 'admin';
@@ -51,150 +57,86 @@ const Login: React.FC = () => {
           finalRole = 'customer';
           await setDoc(doc(db, 'users', user.uid), { role: 'customer' }, { merge: true });
         }
+      } else {
+        finalRole = user.email === ADMIN_EMAIL ? 'admin' : 'customer';
+        const userData: any = {
+          uid: user.uid,
+          email: user.email || '',
+          phoneNumber: user.phoneNumber || '',
+          displayName: name || user.displayName || 'User',
+          role: finalRole,
+          createdAt: new Date().toISOString()
+        };
+        await setDoc(doc(db, 'users', user.uid), userData);
       }
+    }
 
-      if (finalRole === 'admin') {
-        navigate('/admin');
-        return;
-      }
+    if (finalRole === 'admin') {
+      navigate('/admin');
+      return;
+    }
 
-      setStatusText('Getting location...');
-      
-      // Get Location for customers
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-            const data = await res.json();
-            const locationName = data.display_name || `${latitude}, ${longitude}`;
-            await setDoc(doc(db, 'users', user.uid), {
-              location: locationName,
-              lat: latitude,
-              lng: longitude
-            }, { merge: true });
-          } catch (locErr) {
-            console.error("Location fetch error", locErr);
-            await setDoc(doc(db, 'users', user.uid), {
-              location: `${latitude}, ${longitude}`,
-              lat: latitude,
-              lng: longitude
-            }, { merge: true });
-          }
-          navigate('/profile');
-        },
-        (geoError) => {
-          console.error("Geolocation error:", geoError);
-          navigate('/profile');
+    setStatusText('Getting location...');
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          const data = await res.json();
+          const locationName = data.display_name || `${latitude}, ${longitude}`;
+          await setDoc(doc(db, 'users', user.uid), {
+            location: locationName,
+            lat: latitude,
+            lng: longitude
+          }, { merge: true });
+        } catch (locErr) {
+          await setDoc(doc(db, 'users', user.uid), {
+            location: `${latitude}, ${longitude}`,
+            lat: latitude,
+            lng: longitude
+          }, { merge: true });
         }
-      );
+        navigate('/profile');
+      },
+      () => {
+        navigate('/profile');
+      }
+    );
+  };
 
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setError(null);
+    setStatusText('Signing in with Google...');
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      await handleUserPostAuth(result.user, false);
     } catch (err: any) {
-      console.error("Google Auth Error:", err);
       setError(err.message || "An error occurred during Google authentication.");
       setIsLoading(false);
       setStatusText('');
     }
   };
 
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-    
     try {
-      let user;
-      const ADMIN_EMAIL = 'shivamchaudhari1627@gmail.com';
-      let finalRole = 'customer';
-
       if (isSignUp) {
         setStatusText('Creating account...');
         const result = await createUserWithEmailAndPassword(auth, email, password);
-        user = result.user;
-        await updateProfile(user, { displayName: name });
-        
-        finalRole = user.email === ADMIN_EMAIL ? 'admin' : 'customer';
-        
-        // Save extra details
-        const userData: any = {
-          uid: user.uid,
-          email: user.email,
-          displayName: name,
-          role: finalRole,
-          createdAt: new Date().toISOString()
-        };
-        if (age) {
-          userData.age = parseInt(age);
-        }
-        await setDoc(doc(db, 'users', user.uid), userData);
+        await updateProfile(result.user, { displayName: name });
+        await handleUserPostAuth(result.user, true);
       } else {
         setStatusText('Signing in...');
         const result = await signInWithEmailAndPassword(auth, email, password);
-        user = result.user;
-        
-        // Fetch role to determine redirect
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          finalRole = userDoc.data().role;
-          if (user.email === ADMIN_EMAIL && finalRole !== 'admin') {
-            finalRole = 'admin';
-            await setDoc(doc(db, 'users', user.uid), { role: 'admin' }, { merge: true });
-          } else if (user.email !== ADMIN_EMAIL && finalRole === 'admin') {
-            finalRole = 'customer';
-            await setDoc(doc(db, 'users', user.uid), { role: 'customer' }, { merge: true });
-          }
-        } else {
-          finalRole = user.email === ADMIN_EMAIL ? 'admin' : 'customer';
-        }
+        await handleUserPostAuth(result.user, false);
       }
-
-      if (finalRole === 'admin') {
-        navigate('/admin');
-        return;
-      }
-
-      setStatusText('Getting location...');
-      
-      // Get Location for customers
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          
-          // Reverse geocode or just save coords
-          try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-            const data = await res.json();
-            const locationName = data.display_name || `${latitude}, ${longitude}`;
-            
-            await setDoc(doc(db, 'users', user.uid), {
-              location: locationName,
-              lat: latitude,
-              lng: longitude
-            }, { merge: true });
-            
-          } catch (locErr) {
-            console.error("Location fetch error", locErr);
-            await setDoc(doc(db, 'users', user.uid), {
-              location: `${latitude}, ${longitude}`,
-              lat: latitude,
-              lng: longitude
-            }, { merge: true });
-          }
-          
-          navigate('/profile');
-        },
-        (geoError) => {
-          console.error("Geolocation error:", geoError);
-          // Proceed anyway if location fails
-          navigate('/profile');
-        }
-      );
-
     } catch (err: any) {
-      console.error("Auth Error:", err);
-      // Provide helpful messages for common auth errors
       if (err.code === 'auth/operation-not-allowed') {
-        setError("Email/Password login is not enabled. Please use Google Sign-In below.");
+        setError("Email/Password authentication is not enabled. Please Continue with Google below.");
       } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
         setError("Invalid email or password. Please check your credentials and try again.");
       } else if (err.code === 'auth/email-already-in-use') {
@@ -204,6 +146,47 @@ const Login: React.FC = () => {
       } else {
         setError(err.message || "An error occurred during authentication.");
       }
+      setIsLoading(false);
+      setStatusText('');
+    }
+  };
+
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setStatusText('Sending OTP...');
+    try {
+      const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+91${phoneNumber}`;
+      const appVerifier = (window as any).recaptchaVerifier;
+      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+      setConfirmationResult(confirmation);
+      setStatusText('');
+    } catch (err: any) {
+      setError(err.message || "Failed to send OTP.");
+      if ((window as any).recaptchaVerifier) {
+        (window as any).recaptchaVerifier.clear();
+        (window as any).recaptchaVerifier = null;
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!confirmationResult) return;
+    setIsLoading(true);
+    setError(null);
+    setStatusText('Verifying OTP...');
+    try {
+      const result = await confirmationResult.confirm(otp);
+      if (isSignUp && name) {
+        await updateProfile(result.user, { displayName: name });
+      }
+      await handleUserPostAuth(result.user, isSignUp);
+    } catch (err: any) {
+      setError(err.message || "Invalid OTP.");
       setIsLoading(false);
       setStatusText('');
     }
@@ -237,83 +220,182 @@ const Login: React.FC = () => {
           </p>
         </div>
 
-        <form onSubmit={handleAuth} className="space-y-4">
-          {error && (
-            <motion.div 
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm rounded-r-lg"
-            >
-              {error}
-            </motion.div>
-          )}
+        <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+          <button
+            onClick={() => setAuthMethod('email')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all ${authMethod === 'email' ? 'bg-white text-[#8B4513] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            <Mail size={16} /> Email
+          </button>
+          <button
+            onClick={() => setAuthMethod('phone')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all ${authMethod === 'phone' ? 'bg-white text-[#8B4513] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            <Phone size={16} /> Phone
+          </button>
+        </div>
 
-          {isSignUp && (
-            <>
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="p-3 mb-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm rounded-r-lg"
+          >
+            {error}
+          </motion.div>
+        )}
+
+        {authMethod === 'email' ? (
+          <form onSubmit={handleEmailAuth} className="space-y-4">
+            {isSignUp && (
+              <>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Name</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#DAA520] focus:ring-2 focus:ring-[#DAA520]/20 outline-none transition-all"
+                    placeholder="John Doe"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Age</label>
+                  <input 
+                    type="number" 
+                    required 
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#DAA520] focus:ring-2 focus:ring-[#DAA520]/20 outline-none transition-all"
+                    placeholder="25"
+                  />
+                </div>
+              </>
+            )}
+            <div>
+              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Email</label>
+              <input 
+                type="email" 
+                required 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#DAA520] focus:ring-2 focus:ring-[#DAA520]/20 outline-none transition-all"
+                placeholder="admin@example.com"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Password</label>
+              <input 
+                type="password" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#DAA520] focus:ring-2 focus:ring-[#DAA520]/20 outline-none transition-all"
+                placeholder="••••••••"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={`w-full flex items-center justify-center gap-2 text-white p-4 rounded-xl font-bold transition-all shadow-md disabled:opacity-70 mt-6 bg-[#DAA520] hover:bg-[#8B4513]`}
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>{statusText}</span>
+                </>
+              ) : (
+                <span>{isSignUp ? 'Sign Up' : 'Sign In'}</span>
+              )}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={confirmationResult ? handleVerifyOtp : handleSendOtp} className="space-y-4">
+            {isSignUp && !confirmationResult && (
+              <>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Name</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#DAA520] focus:ring-2 focus:ring-[#DAA520]/20 outline-none transition-all"
+                    placeholder="John Doe"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Age</label>
+                  <input 
+                    type="number" 
+                    required 
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#DAA520] focus:ring-2 focus:ring-[#DAA520]/20 outline-none transition-all"
+                    placeholder="25"
+                  />
+                </div>
+              </>
+            )}
+            
+            {!confirmationResult ? (
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Name</label>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Mobile Number</label>
+                <input 
+                  type="tel" 
+                  required 
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#DAA520] focus:ring-2 focus:ring-[#DAA520]/20 outline-none transition-all"
+                  placeholder="9876543210"
+                />
+                <div id="recaptcha-container" className="mt-2"></div>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Enter OTP</label>
                 <input 
                   type="text" 
                   required 
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#DAA520] focus:ring-2 focus:ring-[#DAA520]/20 outline-none transition-all"
-                  placeholder="John Doe"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#DAA520] focus:ring-2 focus:ring-[#DAA520]/20 outline-none transition-all text-center tracking-widest text-xl"
+                  placeholder="------"
+                  maxLength={6}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Age</label>
-                <input 
-                  type="number" 
-                  required 
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#DAA520] focus:ring-2 focus:ring-[#DAA520]/20 outline-none transition-all"
-                  placeholder="25"
-                />
-              </div>
-            </>
-          )}
-
-          <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Email</label>
-            <input 
-              type="email" 
-              required 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#DAA520] focus:ring-2 focus:ring-[#DAA520]/20 outline-none transition-all"
-              placeholder="admin@example.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Password</label>
-            <input 
-              type="password" 
-              required 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#DAA520] focus:ring-2 focus:ring-[#DAA520]/20 outline-none transition-all"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full flex items-center justify-center gap-2 text-white p-4 rounded-xl font-bold transition-all shadow-md disabled:opacity-70 mt-6 bg-[#DAA520] hover:bg-[#8B4513]`}
-          >
-            {isLoading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>{statusText}</span>
-              </>
-            ) : (
-              <span>{isSignUp ? 'Sign Up' : 'Sign In'}</span>
             )}
-          </button>
-        </form>
+            
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={`w-full flex items-center justify-center gap-2 text-white p-4 rounded-xl font-bold transition-all shadow-md disabled:opacity-70 mt-6 bg-[#DAA520] hover:bg-[#8B4513]`}
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>{statusText}</span>
+                </>
+              ) : (
+                <span>{!confirmationResult ? 'Send OTP' : 'Verify & Continue'}</span>
+              )}
+            </button>
+            
+            {confirmationResult && (
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmationResult(null);
+                  setOtp('');
+                }}
+                className="w-full text-sm text-gray-500 hover:text-[#8B4513] font-medium transition-colors mt-2"
+              >
+                Change Mobile Number
+              </button>
+            )}
+          </form>
+        )}
 
         <div className="mt-6 flex items-center justify-between">
           <hr className="w-full border-gray-200" />
@@ -332,7 +414,7 @@ const Login: React.FC = () => {
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
           </svg>
-          Sign in with Google
+          Continue with Google
         </button>
 
         <div className="mt-6 text-center">

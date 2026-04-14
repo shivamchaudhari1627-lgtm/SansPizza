@@ -13,8 +13,8 @@ interface LoginPromptModalProps {
 const LoginPromptModal: React.FC<LoginPromptModalProps> = ({ 
   isOpen, 
   onClose, 
-  title = "Sign In Required", 
-  message = "Please sign in to continue." 
+  title = "Sign Up Required", 
+  message = "Please sign up to continue." 
 }) => {
   const navigate = useNavigate();
 
@@ -46,7 +46,7 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
               }}
               className="w-full bg-[#DAA520] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#8B4513] transition-colors shadow-lg"
             >
-              Login / Sign Up
+              Sign Up / Login
             </button>
           </motion.div>
         </div>
