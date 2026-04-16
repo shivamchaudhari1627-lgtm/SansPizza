@@ -99,7 +99,6 @@ export const toppingOptions = [
   { id: 'chicken-sausage', name: 'Chicken Sausage', price: 65, type: 'non-veg' },
   { id: 'grilled-chicken', name: 'Grilled Chicken', price: 75, type: 'non-veg' },
   { id: 'pepperoni', name: 'Pepperoni', price: 99, type: 'non-veg' },
-  { id: 'ham', name: 'Ham', price: 85, type: 'non-veg' },
 
   // Extra Add-ons
   { id: 'mozzarella', name: 'Mozzarella Cheese', price: 60, type: 'veg' },

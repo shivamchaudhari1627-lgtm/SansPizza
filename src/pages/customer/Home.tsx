@@ -5,6 +5,7 @@ import CustomizeModal from '../../components/CustomizeModal';
 import CartSidebar from '../../components/CartSidebar';
 import Pizza3D from '../../components/Pizza3D';
 import LoginPromptModal from '../../components/LoginPromptModal';
+import FloatingCartButton from '../../components/FloatingCartButton';
 import { menuItems, menuCategories, MenuItem } from '../../data/menu';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../features/store';
@@ -287,6 +288,11 @@ const CustomerHome = () => {
         onClose={() => setIsInitialLoginPromptOpen(false)} 
         title="Welcome to Sanskriti's Pizza!" 
         message="Sign up to save your favorite orders and earn rewards. You can also sign up later before checkout." 
+      />
+
+      <FloatingCartButton 
+        onClick={() => setIsCartOpen(true)} 
+        isSidebarOpen={isCartOpen}
       />
     </div>
   );
