@@ -6,6 +6,7 @@ import CartSidebar from '../../components/CartSidebar';
 import Pizza3D from '../../components/Pizza3D';
 import LoginPromptModal from '../../components/LoginPromptModal';
 import FloatingCartButton from '../../components/FloatingCartButton';
+import AnimatedBag from '../../components/AnimatedBag';
 import { menuItems, menuCategories, MenuItem } from '../../data/menu';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../features/store';
@@ -18,6 +19,7 @@ const CustomerHome = () => {
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isBagAnimated, setIsBagAnimated] = useState(false);
   const [isInitialLoginPromptOpen, setIsInitialLoginPromptOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const { orderType } = useSelector((state: RootState) => state.cart);
@@ -57,10 +59,14 @@ const CustomerHome = () => {
   );
 
   const handleOrderNow = () => {
-    const menuElement = document.getElementById('menu-section');
-    if (menuElement) {
-      menuElement.scrollIntoView({ behavior: 'smooth' });
-    }
+    setIsBagAnimated(true);
+    setTimeout(() => {
+      const menuElement = document.getElementById('menu-section');
+      if (menuElement) {
+        menuElement.scrollIntoView({ behavior: 'smooth' });
+      }
+      setTimeout(() => setIsBagAnimated(false), 2000); // Reset after scrolls
+    }, 1500); // Wait for bag animation before scrolling
   };
 
   return (
@@ -114,22 +120,38 @@ const CustomerHome = () => {
             >
               Experience the perfect blend of Vedic wisdom and modern pizza crafting. Try our new Ashwagandha-infused crust!
             </motion.p>
-            <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-              <motion.button 
-                whileHover={{ scale: 1.05, backgroundColor: "#8B4513", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleOrderNow}
-                className="bg-[#DAA520] text-white px-10 py-4 rounded-full font-bold text-xl hover:bg-[#8B4513] transition-all shadow-xl border-b-4 border-[#B8860B] active:border-b-0"
-              >
-                Order Now
-              </motion.button>
+            <div className="flex flex-wrap gap-4 justify-center md:justify-start min-h-[64px] items-center">
+              <AnimatePresence mode="wait">
+                {isBagAnimated ? (
+                  <motion.div 
+                    key="bag"
+                    initial={{ opacity: 0, scale: 0.5, width: 0 }}
+                    animate={{ opacity: 1, scale: 1, width: 'auto' }}
+                    exit={{ opacity: 0, scale: 0.5, width: 0 }}
+                    className="flex justify-center items-center h-[64px] px-6 bg-[#DAA520]/10 rounded-full border border-[#DAA520]/30"
+                  >
+                    <AnimatedBag />
+                  </motion.div>
+                ) : (
+                  <motion.button 
+                    key="button"
+                    whileHover={{ scale: 1.05, backgroundColor: "#8B4513", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleOrderNow}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    className="bg-[#DAA520] text-white px-10 py-4 rounded-full font-bold text-xl hover:bg-[#8B4513] transition-all shadow-xl border-b-4 border-[#B8860B] active:border-b-0 h-[64px]"
+                  >
+                    Order Now
+                  </motion.button>
+                )}
+              </AnimatePresence>
               
               {!user && (
                 <Link to="/login">
                   <motion.button 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="bg-white text-[#8B4513] px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all shadow-xl border-2 border-white"
+                    className="bg-white text-[#8B4513] px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all shadow-xl border-2 border-white h-[64px]"
                   >
                     Sign Up
                   </motion.button>

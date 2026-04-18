@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import { store, RootState } from './features/store';
@@ -6,10 +6,13 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from './firebase';
 import { setUser } from './features/authSlice';
 import { doc, getDoc } from 'firebase/firestore';
-import CustomerHome from './pages/customer/Home';
-import Profile from './pages/customer/Profile';
-import Login from './pages/auth/Login';
-import AdminDashboard from './pages/admin/Dashboard';
+import PizzaLoader from './components/PizzaLoader';
+
+// Lazy loaded routes for faster initial page load
+const CustomerHome = lazy(() => import('./pages/customer/Home'));
+const Profile = lazy(() => import('./pages/customer/Profile'));
+const Login = lazy(() => import('./pages/auth/Login'));
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
 
 // Placeholder Components for other roles
 const DeliveryLayout = () => <div className="p-4">Delivery Partner App</div>;
@@ -62,22 +65,32 @@ const AppContent = () => {
   }, [dispatch]);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-[#FCF9F2] text-[#8B4513] font-serif text-2xl">Loading Sanskriti's Pizza...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FCF9F2] overflow-hidden">
+        <PizzaLoader size="large" />
+      </div>
+    );
   }
 
   return (
     <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
-        
-        {/* Role-based routing */}
-        <Route path="/admin/*" element={user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/login" />} />
-        <Route path="/delivery/*" element={user?.role === 'delivery' ? <DeliveryLayout /> : <Navigate to="/login" />} />
-        
-        {/* Default to customer app */}
-        <Route path="/*" element={<CustomerHome />} />
-      </Routes>
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#FCF9F2] overflow-hidden">
+          <PizzaLoader size="large" />
+        </div>
+      }>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
+          
+          {/* Role-based routing */}
+          <Route path="/admin/*" element={user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/login" />} />
+          <Route path="/delivery/*" element={user?.role === 'delivery' ? <DeliveryLayout /> : <Navigate to="/login" />} />
+          
+          {/* Default to customer app */}
+          <Route path="/*" element={<CustomerHome />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 };

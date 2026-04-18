@@ -2,6 +2,7 @@ import React, { useRef, useState, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, OrbitControls, ContactShadows, PerspectiveCamera, Stars, Environment, Html } from '@react-three/drei';
 import * as THREE from 'three';
+import PizzaLoader from './PizzaLoader';
 
 // Create a softly fading circular texture for steam particles
 const getParticleTexture = () => {
@@ -564,9 +565,8 @@ const Pizza3D = () => {
       >
         <React.Suspense fallback={
           <Html center>
-            <div className="flex flex-col items-center justify-center w-64 bg-[#0a0500]/90 p-6 rounded-2xl backdrop-blur-md border border-[#DAA520]/30 shadow-2xl">
-              <div className="w-12 h-12 border-4 border-[#DAA520] border-t-transparent rounded-full animate-spin mb-4"></div>
-              <p className="text-[#DAA520] font-bold animate-pulse text-center">Baking 3D Experience...</p>
+            <div className="flex flex-col items-center justify-center p-8 bg-[#FCF9F2] rounded-3xl shadow-2xl border border-yellow-800/10 scale-75 md:scale-100">
+              <PizzaLoader size="large" />
             </div>
           </Html>
         }>
