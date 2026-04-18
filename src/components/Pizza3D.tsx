@@ -77,74 +77,6 @@ const Steam = () => {
   );
 };
 
-const CheeseStrings = ({ isPulled }: { isPulled: boolean }) => {
-  const groupRef = useRef<THREE.Group>(null);
-  
-  const strands = useMemo(() => {
-    return [...Array(12)].map(() => ({
-      position: [
-        (Math.random() - 0.5) * 0.8,
-        0,
-        (Math.random() - 0.5) * 0.4
-      ] as [number, number, number],
-      thickness: 0.005 + Math.random() * 0.015,
-      speed: 1 + Math.random() * 2
-    }));
-  }, []);
-
-  useFrame((state) => {
-    if (!groupRef.current) return;
-    const time = state.clock.getElapsedTime();
-    
-    const targetScaleY = isPulled ? 2.5 : 0.01;
-    const targetOpacity = isPulled ? 0.9 : 0;
-    
-    groupRef.current.children.forEach((child, i) => {
-      const mesh = child as THREE.Mesh;
-      const strand = strands[i];
-      
-      mesh.scale.y = THREE.MathUtils.lerp(mesh.scale.y, targetScaleY, 0.08);
-      
-      if (isPulled) {
-        // Dynamic wobbling and thinning
-        mesh.rotation.z = Math.sin(time * strand.speed + i) * 0.1;
-        mesh.rotation.x = Math.cos(time * strand.speed + i) * 0.1;
-        
-        // Offset to make it look like it's stretching from the base
-        mesh.position.y = -mesh.scale.y * 0.5;
-      } else {
-        mesh.position.y = 0;
-      }
-      
-      const material = mesh.material as THREE.MeshPhysicalMaterial;
-      material.opacity = THREE.MathUtils.lerp(material.opacity, targetOpacity, 0.1);
-      mesh.visible = material.opacity > 0.01;
-    });
-  });
-
-  return (
-    <group ref={groupRef}>
-      {strands.map((strand, i) => (
-        <mesh key={i} position={strand.position}>
-          <cylinderGeometry args={[strand.thickness * 0.3, strand.thickness, 1, 6]} />
-          <meshPhysicalMaterial 
-            color="#d32f2f" 
-            roughness={0.15} 
-            emissive="#b71c1c" 
-            emissiveIntensity={0.2}
-            transmission={0.4}
-            thickness={0.2}
-            transparent
-            opacity={0}
-            clearcoat={1}
-            clearcoatRoughness={0.1}
-          />
-        </mesh>
-      ))}
-    </group>
-  );
-};
-
 const Topping = ({ type, position, rotation }: { type: 'pepperoni' | 'olive' | 'capsicum' | 'mushroom'; position: [number, number, number]; rotation: [number, number, number] }) => {
   if (type === 'olive') {
     return (
@@ -193,15 +125,161 @@ const Topping = ({ type, position, rotation }: { type: 'pepperoni' | 'olive' | '
           emissiveIntensity={0.2}
         />
       </mesh>
-      {/* Curled crispy edge */}
-      <mesh castShadow receiveShadow position={[0, 0.008, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.21, 0.025, 12, 32]} />
-        <meshPhysicalMaterial 
-          color="#3a0201" 
-          roughness={0.6} 
-          clearcoat={0.5}
-        />
-      </mesh>
+    </group>
+  );
+};
+
+const SliceBorder = ({ angle, isRightEdge }: { angle: number; isRightEdge: boolean }) => {
+  const rCenter = 1.025; // Midpoint of the 2.05 radius
+  const x = Math.sin(angle) * rCenter;
+  const z = Math.cos(angle) * rCenter;
+  const rotY = angle + (isRightEdge ? -Math.PI / 2 : Math.PI / 2);
+
+  const torusX = isRightEdge ? 0.875 : -0.875;
+
+  const pockets = useMemo(() => {
+    return [...Array(5)].map(() => ({
+      x: (Math.random() - 0.5) * 1.6,
+      y: 0.06 + Math.random() * 0.12,
+      size: 0.015 + Math.random() * 0.025,
+    }));
+  }, []);
+
+  const drops = useMemo(() => {
+    return [...Array(4)].map(() => ({
+      x: (Math.random() - 0.5) * 1.5,
+      y: 0.05 + Math.random() * 0.08,
+      w: 0.05 + Math.random() * 0.12,
+      h: 0.05 + Math.random() * 0.15,
+      isCheese: Math.random() > 0.4
+    }));
+  }, []);
+
+  return (
+    <group position={[x, 0, z]} rotation={[0, rotY, 0]}>
+      {/* 0.005 Z-offset perfectly covers the internal cylinder caps without Z-fighting */}
+      <group position={[0, 0, 0.006]}>
+        {/* Main baked dough cross section */}
+        <mesh receiveShadow>
+          <planeGeometry args={[2.05, 0.34]} />
+          <meshPhysicalMaterial color="#f4dfc4" roughness={0.9} bumpScale={0.05} />
+        </mesh>
+        
+        {/* Puffy crust cross-section to fill the torus profile perfectly */}
+        <mesh position={[torusX, 0.12, 0.001]} receiveShadow>
+          <circleGeometry args={[0.22, 16]} />
+          <meshPhysicalMaterial color="#f4dfc4" roughness={0.9} />
+        </mesh>
+
+        {/* Thin darker baked margin just beneath the sauce */}
+        <mesh position={[0, 0.12, 0.002]}>
+          <planeGeometry args={[2.05, 0.1]} />
+          <meshPhysicalMaterial color="#dfac73" roughness={0.9} />
+        </mesh>
+
+        {/* Sauce bleeding layer spanning across */}
+        <mesh position={[0, 0.155, 0.003]}>
+          <planeGeometry args={[2.05, 0.04]} />
+          <meshPhysicalMaterial color="#9c110b" roughness={0.3} transmission={0.2} />
+        </mesh>
+
+        {/* Air pockets / steam bubbles inside the slice */}
+        {pockets.map((pocket, i) => (
+          <mesh key={`pocket-${i}`} position={[pocket.x, pocket.y, 0.0035]}>
+            <circleGeometry args={[pocket.size, 12]} />
+            <meshBasicMaterial color="#d4ab7a" />
+          </mesh>
+        ))}
+
+        {/* Realistic random sauce & cheese drips flowing down the cut */}
+        {drops.map((drop, i) => (
+          <mesh key={i} position={[drop.x, drop.y, 0.004]}>
+            <boxGeometry args={[drop.w, drop.h, 0.005]} />
+            <meshPhysicalMaterial 
+              color={drop.isCheese ? "#fadd9e" : "#9c110b"} 
+              roughness={drop.isCheese ? 0.3 : 0.2} 
+            />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  );
+};
+
+const CheesePullStrands = ({ spring, startAngle, angleStep }: { spring: { value: number }, startAngle: number, angleStep: number }) => {
+  const groupRef = useRef<THREE.Group>(null);
+  const meshesRef = useRef<THREE.Mesh[]>([]);
+
+  const strands = useMemo(() => {
+    return [...Array(14)].map(() => {
+      // Distribute heavily right at the slice cuts (edges) for proper pull
+      const isEdge = Math.random() > 0.6;
+      const edgeSide = Math.random() > 0.5 ? 0.02 : angleStep - 0.02;
+      const a = startAngle + (isEdge ? edgeSide : Math.random() * angleStep);
+      return {
+        r: 0.3 + Math.random() * 1.5,
+        a,
+        thickness: 0.008 + Math.random() * 0.015,
+      };
+    });
+  }, [startAngle, angleStep]);
+
+  useFrame(() => {
+    if (!groupRef.current) return;
+    const val = spring.value;
+    groupRef.current.visible = val > 0.01 && val < 0.99;
+    if (!groupRef.current.visible) return;
+
+    const pullDist = val * 1.2;
+    const lift = val * 0.5;
+    const pullMidAngle = startAngle + angleStep / 2;
+    const dx = Math.sin(pullMidAngle) * pullDist;
+    const dz = Math.cos(pullMidAngle) * pullDist;
+    const dy = lift;
+
+    meshesRef.current.forEach((mesh, i) => {
+      if (!mesh) return;
+      const st = strands[i];
+      const origX = Math.sin(st.a) * st.r;
+      const origZ = Math.cos(st.a) * st.r;
+      const origY = 0.24;
+
+      const currX = origX + dx;
+      const currY = origY + dy;
+      const currZ = origZ + dz;
+
+      const distX = currX - origX;
+      const distY = currY - origY;
+      const distZ = currZ - origZ;
+      const distance = Math.sqrt(distX*distX + distY*distY + distZ*distZ);
+      
+      mesh.position.set(origX + distX / 2, origY + distY / 2, origZ + distZ / 2);
+      
+      if (distance > 0.001) {
+        mesh.lookAt(currX, currY, currZ);
+        mesh.rotateX(Math.PI / 2);
+      }
+      
+      mesh.scale.set(1 - val * 0.85, distance || 0.001, 1 - val * 0.85);
+    });
+  });
+
+  return (
+    <group ref={groupRef}>
+      {strands.map((s, i) => (
+        <mesh key={i} ref={(el) => { if (el) meshesRef.current[i] = el; }}>
+          <cylinderGeometry args={[s.thickness, s.thickness, 1, 8]} />
+          <meshPhysicalMaterial 
+            color="#d32f2f" 
+            roughness={0.2} 
+            transmission={0.3} 
+            thickness={0.2} 
+            clearcoat={0.9} 
+            emissive="#8a1712" 
+            emissiveIntensity={0.15} 
+          />
+        </mesh>
+      ))}
     </group>
   );
 };
@@ -220,6 +298,8 @@ const PizzaSlice = ({
   const groupRef = useRef<THREE.Group>(null);
   const angleStep = (Math.PI * 2) / total;
   const startAngle = index * angleStep;
+
+  const springRef = useRef({ value: isPulled ? 1 : 0 });
 
   const toppingsData = useMemo(() => {
     const types: ('pepperoni' | 'olive' | 'capsicum' | 'mushroom')[] = ['pepperoni', 'olive', 'capsicum', 'mushroom'];
@@ -266,12 +346,30 @@ const PizzaSlice = ({
     });
   }, [angleStep]);
 
+  const cheeseSpots = useMemo(() => {
+    return [...Array(8)].map(() => {
+      // Distribute more towards the outer edge for crispy browned cheese
+      const radius = 0.5 + Math.random() * 1.3;
+      const angle = Math.random() * angleStep;
+      return {
+        x: Math.sin(angle) * radius,
+        z: Math.cos(angle) * radius,
+        size: 0.05 + Math.random() * 0.15,
+        color: Math.random() > 0.5 ? "#c27736" : "#a25516", // Caramelized variations
+      };
+    });
+  }, [angleStep]);
+
   useFrame(() => {
     if (!groupRef.current) return;
     const targetY = isPulled ? 1.2 : 0;
     const targetZ = isPulled ? 0.8 : 0;
     const targetRotX = isPulled ? -0.25 : 0;
     const targetRotZ = isPulled ? 0.08 : 0;
+    
+    // Smoothly stretch cheese strings when pulled
+    springRef.current.value = THREE.MathUtils.lerp(springRef.current.value, isPulled ? 1 : 0, 0.08);
+
     groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, 0.08);
     groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetZ, 0.08);
     groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetRotX, 0.08);
@@ -279,15 +377,21 @@ const PizzaSlice = ({
   });
 
   return (
-    <group
-      ref={groupRef}
-      rotation={[0, -startAngle, 0]}
-      onClick={(e) => {
-        e.stopPropagation();
-        onToggle();
-      }}
-    >
+    <group>
+      <CheesePullStrands spring={springRef.current} startAngle={startAngle} angleStep={angleStep} />
+      <group
+        ref={groupRef}
+        rotation={[0, -startAngle, 0]}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
+      >
       <group>
+        {/* Realistic baked interior sides */}
+        <SliceBorder angle={0} isRightEdge={true} />
+        <SliceBorder angle={angleStep} isRightEdge={false} />
+
         {/* Main Crust - Rustic oven-fired */}
         <mesh castShadow receiveShadow>
           <cylinderGeometry args={[2, 2.05, 0.35, 32, 1, false, 0, angleStep]} />
@@ -342,20 +446,39 @@ const PizzaSlice = ({
            </mesh>
         ))}
 
+        {/* Cheese Base - Melted, glossy, creamy white mozzarella (Changed to sauce color as requested) */}
+        <mesh position={[0, 0.22, 0]} receiveShadow>
+          <cylinderGeometry args={[1.85, 1.85, 0.03, 32, 1, false, 0, angleStep]} />
+          <meshPhysicalMaterial 
+            color="#d32f2f" 
+            roughness={0.2} 
+            clearcoat={0.9}
+            clearcoatRoughness={0.15}
+            transmission={0.3}
+            thickness={0.5}
+            emissive="#8a1712" 
+            emissiveIntensity={0.15}
+          />
+        </mesh>
+
+        {/* Caramelized Cheese Spots */}
+        {cheeseSpots.map((spot, i) => (
+          <mesh key={`spot-${i}`} position={[spot.x, 0.236, spot.z]} rotation={[-Math.PI / 2, 0, 0]}>
+            <circleGeometry args={[spot.size, 16]} />
+            <meshPhysicalMaterial color={spot.color} roughness={0.3} clearcoat={0.5} />
+          </mesh>
+        ))}
+
         {/* Toppings - Dynamic Placements */}
         {toppingsData.map((t, i) => (
           <Topping
             key={i}
             type={t.type}
-            position={[Math.sin(t.a) * t.r, 0.21, Math.cos(t.a) * t.r]}
+            position={[Math.sin(t.a) * t.r, 0.24, Math.cos(t.a) * t.r]}
             rotation={t.rotation}
           />
         ))}
       </group>
-
-      {/* Cheese Strings when pulled */}
-      <group position={[0, 0.15, 0.1]}>
-        <CheeseStrings isPulled={isPulled} />
       </group>
     </group>
   );
@@ -430,7 +553,7 @@ const Pizza3D = () => {
       <Canvas 
         shadows={{ type: THREE.PCFShadowMap }}
         dpr={[1, 2]} // Cap DPR for mobile performance
-        camera={{ position: [0, 12, 4.5], fov: 35 }}
+        camera={{ position: [0, 7, 7.5], fov: 40 }}
         style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
         gl={{ 
           antialias: true, 
@@ -479,14 +602,11 @@ const Pizza3D = () => {
 
           <OrbitControls 
             enablePan={false}
-            enableZoom={true}
+            enableZoom={false}
             enableDamping={true}
             dampingFactor={0.05}
             autoRotate={true}
-            autoRotateSpeed={0.8}
-            minDistance={6}
-            maxDistance={20}
-            maxPolarAngle={Math.PI / 2 - 0.05} // Prevent camera from going under the board
+            autoRotateSpeed={1.2}
           />
           
           <Float speed={1.2} rotationIntensity={0.1} floatIntensity={0.3}>
