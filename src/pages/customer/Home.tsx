@@ -164,7 +164,7 @@ const CustomerHome = () => {
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
             transition={{ duration: 1, ease: "backOut" }}
             style={{ y: y2 }}
-            className="md:w-1/2 flex justify-center relative min-h-[400px]"
+            className="w-full md:w-1/2 flex justify-center relative min-h-[400px] mt-8 md:mt-0"
           >
             <Pizza3D />
             

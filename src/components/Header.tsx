@@ -1,5 +1,5 @@
-import React from 'react';
-import { ShoppingCart, User, Menu as MenuIcon, LogOut } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingCart, User, Menu as MenuIcon, LogOut, Download } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../features/store';
 import { Link } from 'react-router-dom';
@@ -17,6 +17,27 @@ const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenLocation }) => {
   const { user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    }
+  };
 
   const handleSignOut = async () => {
     try {
@@ -64,6 +85,15 @@ const Header: React.FC<HeaderProps> = ({ onOpenCart, onOpenLocation }) => {
 
           {/* Right - User & Cart */}
           <div className="flex items-center gap-4 md:gap-6">
+            {deferredPrompt && (
+              <button
+                onClick={handleInstallClick}
+                className="hidden md:flex items-center gap-2 bg-[#DAA520] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#8B4513] transition-colors shadow-sm"
+              >
+                <Download size={14} /> Install App
+              </button>
+            )}
+            
             {user?.role === 'admin' && (
               <Link to="/admin" className="hidden md:flex items-center gap-2 bg-[#8B4513] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#DAA520] transition-colors">
                 Admin Dashboard

@@ -539,7 +539,7 @@ const Pizza3D = () => {
   return (
     <div className="w-full h-[500px] md:h-[700px] relative group overflow-hidden rounded-3xl bg-[#0a0500] border-4 border-[#DAA520]/30 shadow-2xl">
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <span className="text-white/5 font-serif text-9xl font-black uppercase tracking-tighter select-none">Sanskriti</span>
+        <span className="text-white/5 font-serif text-6xl md:text-9xl font-black uppercase tracking-tighter select-none">Sanskriti</span>
       </div>
       
       <div className="absolute top-6 left-6 z-10 bg-black/40 backdrop-blur-xl p-4 rounded-2xl border border-white/10 text-white text-xs pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
